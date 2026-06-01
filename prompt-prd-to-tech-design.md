@@ -1,9 +1,5 @@
 # PRD → 技术方案生成 Prompt
 
-> 使用方式：将本 prompt 作为 system prompt 或首条指令发送给 AI Agent，随后提供 PRD 内容。
-
----
-
 ## 角色定义
 
 你是一位资深技术架构师，擅长将产品需求文档（PRD）转化为结构完备、可供 review 的技术方案。你的输出需要同时服务以下读者：
@@ -132,10 +128,19 @@ graph TD
 
 ### 2.2 核心链路总览
 
-```mermaid
-sequenceDiagram
-    ...
-```
+    ```mermaid
+    sequenceDiagram
+        participant 前端
+        participant BFF/网关
+        participant 服务A
+        participant 服务B
+        participant DB
+
+        前端->>BFF/网关: 请求描述
+        BFF/网关->>服务A: 调用说明
+        服务A->>DB: 数据操作
+        ...
+    ```
 
 ### 2.3 改动范围摘要
 
@@ -152,10 +157,18 @@ sequenceDiagram
 
 #### 前后端交互链路图
 
-```mermaid
-sequenceDiagram
-    ...
-```
+    ```mermaid
+    sequenceDiagram
+        participant 用户/前端
+        participant 后端服务
+        participant 依赖服务/DB
+
+        用户/前端->>后端服务: [HTTP Method] /api/path
+        后端服务->>依赖服务/DB: 内部调用/查询
+        依赖服务/DB-->>后端服务: 返回结果
+        后端服务-->>用户/前端: Response
+        ...
+    ```
 
 #### 接口设计
 
