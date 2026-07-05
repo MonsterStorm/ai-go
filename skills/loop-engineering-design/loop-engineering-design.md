@@ -97,7 +97,7 @@ Skill 是你停止每次都向 agent 重新解释项目上下文的方式。没�
 
 一个只能看文件系统的 Loop 是一个很小的 Loop。Connectors（通过 MCP）让 agent 能读 issue tracker、查数据库、访问 staging API、在群里发消息。
 
-本系统第一版聚焦研发工程核心流程，Connector 暂时通过 bash 工具间接实现（如 `medeo-dev psql --stg` 查数据库）。后续可通过 MCP 扩展到飞书通知、issue 管理、CI/CD 触发等。
+本系统第一版聚焦研发工程核心流程，Connector 暂时通过 bash 工具间接实现（如通过项目提供的只读数据库命令查数据库）。后续可通过 MCP 扩展到 IM 通知、issue 管理、CI/CD 触发等。
 
 ### 2.5 Sub-agents（Maker/Checker 分离）
 
