@@ -55,19 +55,32 @@ Loop-Engineering 的做法是：**给目标，给约束，给工具，让 agent 
 
 **让 Loop 真正循环起来的东西。** 不是你手动一步步推进，而是系统自己发现工作、分配工作、检查结果。
 
-在本系统中，Automation 的形态是 **Command**（`/dev`、`/fix`、`/analyze`）。每个 Command 定义的是一个 Goal 和停止条件，而不是一个固定流程。Agent 收到 Goal 后，自行规划执行路径，循环直到停止条件满足。
+在本系统中，Automation 的用户入口只有一个：**`/sm-loop`**。用户只需要描述目标、问题和停止条件，不需要提前判断自己该使用研发、修复还是分析命令。
+
+`/sm-loop` 定义的是一个 Goal 和边界条件，而不是一个固定流程。Agent 收到 Goal 后，先判断任务类型和风险等级，再自行规划执行路径，循环直到停止条件满足。
 
 ```
-/dev <需求描述>     → Goal: 需求功能可工作，测试通过，代码符合工程规范
-/fix <issue描述>    → Goal: 问题根因定位，修复已验证，回归测试通过
-/analyze <问题描述> → Goal: 问题定位到具体代码和逻辑，给出可信分析结论
+/sm-loop <目标描述>                 → 自动判断内部模式和执行策略
+/sm-loop --mode fix <issue描述>     → 可选：用户明确指定修复模式
+/sm-loop --readonly <问题描述>      → 可选：强制只读分析，不修改代码
+```
+
+内部模式是实现细节，而不是主要用户接口：
+
+```
+design  → Goal: 技术方案可信、可落地、已通过方案审查
+dev     → Goal: 需求功能可工作，测试通过，代码符合工程规范
+fix     → Goal: 问题根因定位，修复已验证，回归测试通过
+analyze → Goal: 问题定位到具体代码和逻辑，给出可信分析结论
+review  → Goal: 对方案、代码或测试给出独立审查结论
+test    → Goal: 关键路径和边界条件被测试覆盖
 ```
 
 ### 2.2 Worktrees（并行隔离）
 
 两个 agent 同时写同一个文件 = 两个工程师同时改同一行代码但没沟通。Git worktree 给每个 agent 一个独立的工作目录，共享同一个 repo 历史，互不干扰。
 
-在本系统中，`/fix` 命令会自动在独立 worktree 中工作（遵循现有项目的分支规范），完成后生成 PR。`/dev` 同理，在 feature branch 上工作。
+在本系统中，`/sm-loop` 会根据内部模式决定是否需要独立 worktree。会修改代码的模式（如 dev、fix）默认在独立分支或 worktree 中工作（遵循现有项目的分支规范），完成后生成 PR；只读模式（如 analyze、review）不创建写入分支。
 
 ### 2.3 Skills（编码的项目知识）
 
@@ -135,6 +148,13 @@ Agent 在两次运行之间遗忘一切。State 必须在磁盘上，不在上�
 **层 3：经验索引（`knowledge/index.md`）**
 
 一个轻量索引文件，指向项目中真实存在的经验知识——系统架构文档、编码规范、部署规约、历史踩坑记录等。不重复存储，只是把分散在各处的重要信息组织起来。随着 Loop 的使用自然增长。
+
+**提交边界：**
+
+- `.loop/` 是运行态记忆，默认不提交，用于当前任务恢复和过程回溯
+- `knowledge/index.md` 是长期知识索引，应该提交到 repo
+- `.opencode/skills/` 和 agent/command 定义是稳定规则，应该提交到 repo
+- `.loop/artifacts/` 中的方案、报告默认是过程产物；如果需要作为团队知识沉淀，应由 agent 复制或整理到项目文档目录后提交
 
 ---
 
@@ -265,9 +285,75 @@ Agent 在两次运行之间遗忘一切。State 必须在磁盘上，不在上�
 
 ---
 
-## 4. 三个 Loop 的设计
+## 4. `/sm-loop` 的单入口设计
 
-### 4.1 `/dev` — 研发循环
+### 4.1 为什么只暴露一个命令
+
+研发任务的边界经常在执行中才变清晰：一个"帮我看下这个问题"可能最后需要修复代码；一个"实现这个需求"可能先要做架构分析；一个"修复 bug"可能发现根因在产品规则不清。让用户在开始前选择 `/dev`、`/fix`、`/analyze`，会把本该由系统判断的分类负担转移给用户。
+
+因此本系统只暴露一个稳定入口：
+
+```
+/sm-loop <目标、问题、需求或停止条件>
+```
+
+命令入口保持长期稳定，内部流程可以持续优化。未来新增测试补全、代码审查、部署验证、知识沉淀等能力时，都优先作为 `/sm-loop` 的内部模式扩展，而不是继续增加顶层命令。
+
+### 4.2 Loop Router：先判断，再执行
+
+`/sm-loop` 收到输入后，第一步不是直接编码，而是进行轻量路由判断：
+
+| 判断项 | 说明 |
+|--------|------|
+| **任务意图** | 需求开发、问题修复、只读分析、方案设计、代码审查、测试补全等 |
+| **写入风险** | 是否需要修改代码、创建分支、写数据库、触发外部系统 |
+| **不确定性** | 是否需要先提问、先探索、或先输出方案让用户确认 |
+| **停止条件** | 用户是否给出明确完成标准；没有则由 agent 推导并写入 progress |
+| **所需 agent** | architect、coder、checker、tester、investigator 的组合 |
+
+路由结果写入 `.loop/progress.md`，作为本轮 Loop 的初始状态：
+
+```markdown
+## Loop Router
+
+- User command: /sm-loop 修复订单退款偶发失败的问题
+- Selected mode: fix
+- Write scope: code + tests
+- Requires branch/worktree: yes
+- Stop conditions:
+  - 根因定位到具体代码
+  - 修复通过回归测试
+  - Checker 审查 PASS
+```
+
+如果任务意图不明确，或存在高风险操作，`/sm-loop` 必须暂停并询问用户。除此之外，agent 可以自行选择内部执行策略。
+
+### 4.3 内部模式库
+
+内部模式是可替换的执行策略，不是用户必须记住的命令。第一版包含以下模式：
+
+| 内部模式 | 典型输入 | Goal | 默认写入权限 |
+|----------|----------|------|--------------|
+| **design** | "根据这个 PRD 出技术方案" | 技术方案可信、可落地、通过方案审查 | 写 `.loop/artifacts/` |
+| **dev** | "实现会员自动续费" | 功能可工作，测试通过，代码符合工程规范 | 写代码、测试、文档 |
+| **fix** | "修复退款偶发失败" | 根因定位，修复已验证，回归测试通过 | 写代码、测试、文档 |
+| **analyze** | "分析为什么订单状态不一致" | 给出有证据支撑的分析结论 | 只读 |
+| **review** | "检查这个方案/PR 有没有问题" | 输出独立审查结论 | 只读 |
+| **test** | "给这个模块补测试" | 关键路径和边界条件被测试覆盖 | 写测试 |
+
+用户可以显式指定模式，但这只是高级用法：
+
+```
+/sm-loop --mode analyze <问题描述>
+/sm-loop --mode fix <issue 描述>
+/sm-loop --mode design <PRD 或需求描述>
+```
+
+### 4.4 默认执行策略
+
+以下策略展示常见路径。它们不是硬编码流程，agent 可以根据任务复杂度跳过、合并或重排步骤。
+
+#### dev 策略：需求开发
 
 **Goal：** 需求功能可工作，测试通过，代码符合工程规范，Checker 审查通过。
 
@@ -276,27 +362,18 @@ Agent 在两次运行之间遗忘一切。State 必须在磁盘上，不在上�
 - 所有相关测试通过
 - 代码已提交到 feature branch
 
-**分级控制：**
-
-| 操作 | 风险 | 控制方式 |
-|------|------|----------|
-| 代码仓库探索、文档阅读 | 低 | 自动执行 |
-| 技术方案设计 | 中 | 自动执行，完成后**暂停等待用户确认** |
-| 代码编写、测试编写 | 低 | 自动执行 |
-| Checker 审查 | 低 | 自动执行 |
-| 根据审查意见修改代码 | 低 | 自动执行 |
-| 创建 PR / 发布操作 | 高 | **暂停等待用户确认** |
-
-**Maker/Checker 循环：**
+**常见路径：**
 
 ```
-用户: /dev <需求>
+用户: /sm-loop 实现 <需求>
+  │
+  ├─ [router] 判断为 dev；识别风险、停止条件和所需 agent
   │
   ├─ [architect] 探索项目 → 设计技术方案
   │   └─ [checker] 审查方案 → PASS / NEEDS_WORK
   │       └─ NEEDS_WORK → architect 修改 → checker 再审 → ... (循环)
   │
-  ├─ ⏸ 用户确认技术方案
+  ├─ ⏸ 如方案复杂或影响面大，等待用户确认
   │
   ├─ [coder] 按方案编码，增量提交
   │   └─ [tester] 编写并运行测试
@@ -305,12 +382,10 @@ Agent 在两次运行之间遗忘一切。State 必须在磁盘上，不在上�
   ├─ [checker] 审查代码 + 测试 → PASS / NEEDS_WORK
   │   └─ NEEDS_WORK → coder 修复 → checker 再审 → ... (循环)
   │
-  └─ ⏸ 用户确认，创建 PR
+  └─ ⏸ 创建 PR 或发布操作前等待用户确认
 ```
 
-注意：这不是一个固定的流程图。Agent 有权根据需求的复杂度跳过步骤或调整顺序。简单的改动可能不需要完整的技术方案；复杂的改动可能需要多轮 architect-checker 来回。上图只是展示最常见的路径。
-
-### 4.2 `/fix` — 修复循环
+#### fix 策略：问题修复
 
 **Goal：** 问题根因已定位，修复已实施，回归测试通过，Checker 审查通过。
 
@@ -320,21 +395,12 @@ Agent 在两次运行之间遗忘一切。State 必须在磁盘上，不在上�
 - Checker 确认修复方案合理且无副作用
 - 代码已提交到 fix branch
 
-**分级控制：**
-
-| 操作 | 风险 | 控制方式 |
-|------|------|----------|
-| 问题复现、日志分析 | 低 | 自动执行 |
-| 根因定位、影响面评估 | 低 | 自动执行 |
-| 修复方案确认 | 中 | 自动执行，但 investigator 分析结果会**展示给用户** |
-| 代码修复、测试 | 低 | 自动执行 |
-| Checker 审查 | 低 | 自动执行 |
-| 创建 PR | 高 | **暂停等待用户确认** |
-
-**循环结构：**
+**常见路径：**
 
 ```
-用户: /fix <issue 描述>
+用户: /sm-loop 修复 <issue 描述>
+  │
+  ├─ [router] 判断为 fix；确认需要写代码和回归测试
   │
   ├─ [investigator] 复现问题 → 分析日志 → 定位根因 → 评估影响面
   │   └─ 输出：问题分析报告（代码位置、根因、影响面、建议修复方案）
@@ -346,10 +412,10 @@ Agent 在两次运行之间遗忘一切。State 必须在磁盘上，不在上�
   ├─ [checker] 审查修复 → 无副作用？回归测试覆盖充分？
   │   └─ NEEDS_WORK → coder 修复 → checker 再审 → ... (循环)
   │
-  └─ ⏸ 用户确认，创建 PR
+  └─ ⏸ 创建 PR 前等待用户确认
 ```
 
-### 4.3 `/analyze` — 分析循环
+#### analyze 策略：只读分析
 
 **Goal：** 问题定位到具体代码和逻辑，给出有证据支撑的分析结论。
 
@@ -358,18 +424,36 @@ Agent 在两次运行之间遗忘一切。State 必须在磁盘上，不在上�
 - 每个结论有日志、代码或数据作为证据支撑
 - 输出了结构化的分析报告
 
-**特殊之处：** 这个 Loop **完全只读**，不修改任何代码。只用 investigator agent。
+**特殊之处：** 这个模式完全只读，不修改任何代码。默认只使用 investigator agent；必要时可让 checker 审查分析结论是否证据充分。
 
 ```
-用户: /analyze <问题描述>
+用户: /sm-loop 分析 <问题描述>
   │
-  └─ [investigator] 
+  ├─ [router] 判断为 analyze；确认只读边界
+  │
+  └─ [investigator]
       ├─ 定位相关系统和应用
       ├─ 阅读代码逻辑
       ├─ 查询日志和数据（如需要）
       ├─ 多轮分析收敛
       └─ 输出：分析报告（代码位置、逻辑说明、问题成因、建议）
 ```
+
+### 4.5 统一风险控制
+
+风险控制不绑定某个具体模式，而是由 `/sm-loop` 在路由和执行过程中持续判断：
+
+| 操作 | 风险 | 控制方式 |
+|------|------|----------|
+| 代码仓库探索、文档阅读 | 低 | 自动执行 |
+| 只读日志、只读数据库查询 | 低 | 自动执行，但查询范围必须明确 |
+| 技术方案设计 | 中 | 自动执行；影响面大或方案不确定时暂停确认 |
+| 代码编写、测试编写 | 低 | 在独立分支或 worktree 中自动执行 |
+| Checker 审查 | 低 | 自动执行，checker 保持只读 |
+| 修改数据库、调用外部写接口 | 高 | 默认禁止，除非用户明确授权 |
+| 创建 PR、发布、部署 | 高 | 暂停等待用户确认 |
+
+这保证了 `/sm-loop` 对用户足够简单，同时不会把安全边界隐藏在复杂的内部流程里。
 
 ---
 
@@ -385,15 +469,15 @@ ai-go/
 │   │   ├── tester.md                      # 测试执行者
 │   │   └── investigator.md                # 问题定位者
 │   ├── commands/
-│   │   ├── dev.md                         # /dev — 研发循环入口
-│   │   ├── fix.md                         # /fix — 修复循环入口
-│   │   └── analyze.md                     # /analyze — 分析循环入口
+│   │   └── sm-loop.md                     # /sm-loop — 唯一用户入口，内部路由到不同模式
 │   └── skills/
 │       └── loop-engineering/
 │           ├── SKILL.md                   # 核心 Skill：Loop 系统运作方式
 │           └── references/
-│               ├── dev-workflow.md        # 研发循环的领域知识
-│               ├── fix-workflow.md        # 修复循环的领域知识
+│               ├── router.md              # 意图识别、风险判断、模式选择
+│               ├── dev-workflow.md        # dev 内部模式的领域知识
+│               ├── fix-workflow.md        # fix 内部模式的领域知识
+│               ├── analyze-workflow.md    # analyze 内部模式的领域知识
 │               ├── review-criteria.md     # Checker 审查标准（Ratchet 载体）
 │               ├── test-strategy.md       # 测试策略
 │               └── progress-format.md     # State 文件格式规范
@@ -416,7 +500,7 @@ curl -fsSL https://raw.githubusercontent.com/MonsterStorm/ai-go/main/install.sh 
 4. 确保 `.opencode/package.json` 包含 `@opencode-ai/plugin` 依赖（如果有 tools 需要）
 5. 在 `.gitignore` 中添加 `.loop/` 目录（progress 和 artifacts 不提交到代码仓库）
 
-安装后，在项目中打开 OpenCode 即可使用 `/dev`、`/fix`、`/analyze` 命令。
+安装后，在项目中打开 OpenCode 即可使用 `/sm-loop` 命令。其他能力作为 `/sm-loop` 的内部模式演进，不作为默认顶层命令暴露。
 
 ---
 
@@ -431,6 +515,14 @@ curl -fsSL https://raw.githubusercontent.com/MonsterStorm/ai-go/main/install.sh 
 3. **Agent 反复犯的错误** → 写入对应 agent 的 prompt 或项目的 `AGENTS.md`
 
 **原则：只在真实失败发生时添加规则，不预设规则。** 每条规则都能追溯到一次具体的失败。当模型进步让某条规则不再需要时，删掉它。
+
+为了避免 Skill 变成长篇风格指南，只有同时满足以下条件的经验才进入 Ratchet：
+
+- 不是一次性个例，未来复现概率高
+- 能写成简短、明确、可执行的规则
+- 不与现有规则重复
+- 对后续 agent 决策有实际约束力
+- 能在未来被删除、合并或降级
 
 ### 6.2 经验索引
 
@@ -479,7 +571,7 @@ curl -fsSL https://raw.githubusercontent.com/MonsterStorm/ai-go/main/install.sh 
 
 | 需求 | 本系统的做法 | 不做的事 |
 |------|-------------|---------|
-| 循环控制 | Command 定义 Goal + 停止条件，agent 自行循环 | 不写 Plugin 控制状态机 |
+| 循环控制 | `/sm-loop` Command 定义 Goal + 停止条件，router 选择内部策略，agent 自行循环 | 不写 Plugin 控制状态机 |
 | 权限管控 | 用 OpenCode 的 agent permission 系统 | 不写自定义 gate tool |
 | 模型选择 | 在 agent 定义中指定 model | 不动态切换模型 |
 | 上下文管理 | 依赖 OpenCode 的 compaction + skill 按需加载 | 不自己管理 context window |
@@ -501,7 +593,7 @@ curl -fsSL https://raw.githubusercontent.com/MonsterStorm/ai-go/main/install.sh 
 - Codex 适配（agents 转为 TOML 格式）
 
 ### Phase 4：高级 Loop 模式
-- `/goal` 模式：不限于单次 session，定义一个持续运行直到条件满足的 goal
+- goal 模式：作为 `/sm-loop` 的内部模式，不限于单次 session，定义一个持续运行直到条件满足的 goal
 - 定时 Automation：每日自动扫描 CI 失败、新 issue，主动发起修复
 - 跨项目 Loop：一个需求涉及多个服务时，在多个 worktree 中并行工作
 
