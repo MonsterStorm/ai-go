@@ -139,11 +139,25 @@ if [ "$DEPLOY_OPENCODE" -eq 1 ]; then
   OPENCODE_CONFIG="$OPENCODE/opencode.json"
   if [ -e "$OPENCODE_CONFIG" ]; then
     skipped+=("$OPENCODE_CONFIG")
+    if ! grep -q '"task"' "$OPENCODE_CONFIG"; then
+      echo "Hint: add the on-demand permission block to $OPENCODE_CONFIG so role"
+      echo "agents and loop skills only run when you trigger or approve them:"
+      echo '  "permission": { "task": { "ai-go-*": "ask" }, "skill": { "ai-go-*": "ask" } }'
+    fi
   else
+    # instructions: the knowledge base auto-loads in every session here.
+    # permission gates: role agents and loop skills are on-demand - the AI
+    # must get user approval unless the user invoked them directly
+    # (/ai-go:loop, an @ai-go-... mention). The unattended harness runs with
+    # --auto, so these interactive gates never stall it.
     cat > "$OPENCODE_CONFIG" <<'OPENCODE_JSON'
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": ["AGENTS.md"]
+  "instructions": ["AGENTS.md"],
+  "permission": {
+    "task": { "ai-go-*": "ask" },
+    "skill": { "ai-go-*": "ask" }
+  }
 }
 OPENCODE_JSON
     created+=("$OPENCODE_CONFIG")

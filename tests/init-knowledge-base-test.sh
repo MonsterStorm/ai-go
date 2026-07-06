@@ -34,6 +34,10 @@ test -f "$P1/.opencode/skills/ai-go-loop/SKILL.md"
 test -f "$P1/.opencode/agents/ai-go-delivery-reviewer.md"
 test -f "$P1/.opencode/opencode.json"
 grep -F 'AGENTS.md' "$P1/.opencode/opencode.json" >/dev/null
+# On-demand gates: role agents and loop skills prompt before auto-invocation.
+grep -F '"task": { "ai-go-*": "ask" }' "$P1/.opencode/opencode.json" >/dev/null
+grep -F '"skill": { "ai-go-*": "ask" }' "$P1/.opencode/opencode.json" >/dev/null
+grep -F 'On-Demand Role Agents And Loop Mode' "$P1/AGENTS.md" >/dev/null
 
 # --- Idempotency: never overwrite user content ------------------------------------
 

@@ -155,6 +155,8 @@ scripts/init-knowledge-base.sh https://github.com/you/your-project
 | `.opencode/` | 引擎的命令、技能、13 个角色代理（项目级加载；`--no-opencode` 跳过） |
 | `.gitignore` | 追加 `tasks/**/loop/logs/`（harness 运行日志不入库） |
 
+初始化后的加载语义是**分层**的：**知识库自动加载**（`.opencode/opencode.json` 的 `instructions` 让 `AGENTS.md` 进入该项目的每个会话）；**命令按需**（敲 `/ai-go:loop` 才执行）；**角色代理与 loop 技能按需**——配置把 `ai-go-*` 的 `task`/`skill` 权限设为 `ask`，AI 不能自作主张把活派给角色或进入循环模式，除非你亲自触发（`@ai-go-...` 提及、`/ai-go:loop`）或批准；无人值守 harness 以 `--auto` 运行，这些交互门不会卡住它。
+
 然后补全 `AGENTS.md` 与 `knowledge/index.md` 里的 TODO（尤其是验证命令和红线）。可以手工填，也可以让引擎自己探索补全——在项目里启动 OpenCode 后运行：
 
 ```text

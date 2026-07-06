@@ -460,7 +460,9 @@ makes a rule unnecessary, delete it.
 
 ## Unattended Safety
 
-`opencode run` auto-approves all permissions (YOLO mode). Therefore:
+The harness runs `opencode run --auto`, which auto-approves all permissions
+that are not explicitly denied (interactive "ask" gates, such as on-demand
+role-agent rules, do not pause unattended runs). Therefore:
 
 - Only run the harness against repositories where unattended edits are
   acceptable, on a feature branch, never on a production-release branch.
