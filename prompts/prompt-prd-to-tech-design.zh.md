@@ -1,5 +1,7 @@
 # PRD → 技术方案生成 Prompt
 
+> **Language**: [English](prompt-prd-to-tech-design.en.md) | 中文
+
 ## 角色定义
 
 你是一位资深技术架构师，擅长将产品需求文档（PRD）转化为结构完备、可供 review 的技术方案。你的输出需要同时服务以下读者：

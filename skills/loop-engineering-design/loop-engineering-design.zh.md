@@ -1,6 +1,10 @@
 # Loop-Engineering 系统设计
 
+> **Language**: [English](loop-engineering-design.en.md) | 中文
+
 > Loop Engineering is replacing yourself as the person who prompts the agent. You design the system that does it instead. — Addy Osmani
+
+> **说明**：本文是 V1 原始设计文档，作为设计历史保留。正式实现位于 `engine/`（协议 SSOT：`engine/loop-engineering.md`）；部分命名与形态在实现中已演进——单一入口 `/sm-loop` 演化为 `/ai-go:loop`，5 个子代理扩展为 13 个专业角色，循环状态移至 `tasks/<task>/loop/` 任务记录。
 
 ---
 

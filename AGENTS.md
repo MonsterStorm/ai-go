@@ -11,7 +11,7 @@ knowledge base.
 | --- | --- |
 | `engine/` | The engine itself. SSOT: `engine/loop-engineering.md`; layout: `engine/README.md` |
 | `.opencode/` | Synced copies of engine assets for OpenCode project-scope loading — never edit directly |
-| `scripts/` | `init-knowledge-base.sh` (initialize a target project), `install-opencode-engine.sh` (global install), `sync-engine-assets.sh` (refresh `.opencode/`) |
+| `scripts/` | `init-knowledge-base.sh` (initialize a target project), `install-opencode-engine.sh` (scoped install: `--workspace`/`--global`, plus `--uninstall`), `sync-engine-assets.sh` (refresh `.opencode/`) |
 | `templates/` | Knowledge-base scaffolding installed into target projects |
 | `prompts/`, `skills/loop-engineering-design/` | Design documents and prompt material behind the engine |
 | `tests/` | Bash contract tests for the scripts and engine deployment |
@@ -25,6 +25,9 @@ knowledge base.
   never edit them directly.
 - Keep everything in this repository project-agnostic: no references to any
   specific company, workspace, sibling project, or local user path.
+- Multi-language documents follow the `<name>.<lang>.md` convention (e.g.
+  `prompt-prd-to-tech-design.en.md` / `.zh.md`); keep language variants in
+  sync when editing one of them.
 - Verification: run `bash tests/<test>.sh` for every script you change; all
   tests must pass before handoff.
 
