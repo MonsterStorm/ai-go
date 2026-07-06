@@ -39,11 +39,11 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-SOURCE_LOOP_COMMAND="$REPO_ROOT/engine/commands/loop.md"
+SOURCE_COMMANDS_DIR="$REPO_ROOT/engine/commands"
 SOURCE_LOOP_SKILL_DIR="$REPO_ROOT/engine/skills/ai-go-loop"
 SOURCE_AGENTS_DIR="$REPO_ROOT/engine/agents"
 
-for f in "$SOURCE_LOOP_COMMAND" "$SOURCE_LOOP_SKILL_DIR/SKILL.md"; do
+for f in "$SOURCE_COMMANDS_DIR/loop.md" "$SOURCE_LOOP_SKILL_DIR/SKILL.md"; do
   if [ ! -f "$f" ]; then
     echo "Missing source file: $f" >&2
     exit 1
@@ -57,11 +57,15 @@ fi
 
 mkdir -p "$TARGET/commands/ai-go" "$TARGET/skills/ai-go-loop" "$TARGET/agents"
 
-cp "$SOURCE_LOOP_COMMAND" "$TARGET/commands/ai-go/loop.md"
+for cmd in "$SOURCE_COMMANDS_DIR"/*.md; do
+  cp "$cmd" "$TARGET/commands/ai-go/$(basename "$cmd")"
+done
 cp "$SOURCE_LOOP_SKILL_DIR/SKILL.md" "$TARGET/skills/ai-go-loop/SKILL.md"
 cp "$SOURCE_AGENTS_DIR"/ai-go-*.md "$TARGET/agents/"
 
-echo "Installed OpenCode command: $TARGET/commands/ai-go/loop.md"
+for cmd in "$SOURCE_COMMANDS_DIR"/*.md; do
+  echo "Installed OpenCode command: $TARGET/commands/ai-go/$(basename "$cmd")"
+done
 echo "Installed OpenCode skill: $TARGET/skills/ai-go-loop/SKILL.md"
 for f in "$SOURCE_AGENTS_DIR"/ai-go-*.md; do
   echo "Installed OpenCode agent: $TARGET/agents/$(basename "$f")"

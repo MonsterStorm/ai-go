@@ -19,7 +19,10 @@ mkdir -p "$OPENCODE/agents" "$OPENCODE/commands/ai-go" "$OPENCODE/skills/ai-go-l
 # Remove stale engine copies (agents deleted from engine/ must disappear here too).
 rm -f "$OPENCODE"/agents/ai-go-*.md
 cp "$ENGINE"/agents/ai-go-*.md "$OPENCODE/agents/"
-cp "$ENGINE/commands/loop.md" "$OPENCODE/commands/ai-go/loop.md"
+# Engine commands all deploy under the ai-go command namespace.
+for cmd in "$ENGINE"/commands/*.md; do
+  cp "$cmd" "$OPENCODE/commands/ai-go/$(basename "$cmd")"
+done
 cp "$ENGINE/skills/ai-go-loop/SKILL.md" "$OPENCODE/skills/ai-go-loop/SKILL.md"
 
 echo "Synced engine assets into $OPENCODE"

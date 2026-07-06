@@ -13,6 +13,7 @@ system and designed to move to other workspaces and repositories without edits.
 | `references/iteration-card.md` | Compact per-iteration contract for harness iterations (condensed from the protocol; kept in sync by tests) |
 | `agents/` | Thirteen professional role subagents: product analyst, system architect, backend architect, frontend expert, mobile expert, data engineer, AI engineer, DevOps engineer, security engineer, test engineer, issue fixer, tech reviewer, delivery reviewer |
 | `commands/loop.md` | `/ai-go:loop` command definition |
+| `commands/models.md` | `/ai-go:models` — agent-guided strong/execution model binding (discover, propose, confirm, write config) |
 | `skills/ai-go-loop/` | Conversational trigger skill |
 | `engine/scripts/loop-run.sh` | Unattended harness driving `opencode run` iterations |
 

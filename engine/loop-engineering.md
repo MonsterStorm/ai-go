@@ -367,7 +367,10 @@ review work; **execution** = fast accurate implementation against clear
 instructions. Bind concrete models per workspace via the OpenCode agent `model`
 field; do not hardcode model IDs in engine files. Loop wall-clock time is
 dominated by model latency: binding execution-tier roles to genuinely fast
-models matters more for speed than any protocol tuning.
+models matters more for speed than any protocol tuning. The engine's models
+command (`/ai-go:models`, SSOT: `commands/models.md` in this directory)
+discovers the available models, proposes a strong/execution/compaction
+pairing, and writes the bindings after one user confirmation.
 
 ### Functional positions (maker/checker)
 
