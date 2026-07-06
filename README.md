@@ -124,7 +124,7 @@ Agent 会忘，仓库不忘。每个任务是一条任务记录（spec / plan / 
 | **会话技能** | `engine/skills/ai-go-loop/` | "loop this task"、"自动迭代交付" 等短语直接触发 |
 | **无人值守 harness** | `engine/scripts/loop-run.sh` | 每迭代一个全新会话，退出码语义化，自带各种刹车 |
 | **知识库初始化器** | `scripts/init-knowledge-base.sh` | 一条命令让任何项目具备运行引擎的全部前提 |
-| **模板与测试** | `templates/`、`tests/` | 知识库脚手架模板；脚本与部署的契约测试 |
+| **模板与测试** | `templates/`、`tests/` | 知识库脚手架模板、OpenCode 模型绑定示例；脚本与部署的契约测试 |
 
 ## 安装使用
 
@@ -171,7 +171,15 @@ scripts/install-opencode-engine.sh   # 默认装到 ~/.config/opencode
 
 安装后重启 OpenCode。角色代理是 `mode: subagent`，不会出现在 Tab 主代理切换器里；在输入框输入 `@ai-go` 即可看到全部 13 个。
 
-### 3. 日常使用
+### 3.（推荐）绑定 strong / execution 模型
+
+**不绑定时，子代理会继承主会话的模型**，协议里的 strong/execution 分档不会自动生效——而循环耗时主要取决于模型延迟，这是收益最大的一项配置。从模板 [`templates/opencode-model-binding.example.json`](templates/opencode-model-binding.example.json) 开始，合并进 `~/.config/opencode/opencode.json`（全局）或工作区根 `opencode.json`（项目级，优先级更高）。三个要点：
+
+- 把示例模型 ID 换成你实际可用的（`opencode models` 可列出）；
+- 保留每项的 `"mode": "subagent"`——否则 OpenCode 会把配置过的 agent 当成 primary，挤进 Tab 切换器；
+- 模板同时开启了自动 compaction（`auto` + `prune`）并给压缩本身绑了便宜模型。长任务优先靠任务记录断点续跑（`/ai-go:loop tasks/<task>`），compaction 只作兜底。
+
+### 4. 日常使用
 
 在目标项目中打开 OpenCode：
 
@@ -187,7 +195,7 @@ scripts/install-opencode-engine.sh   # 默认装到 ~/.config/opencode
 
 循环在以下节点必定暂停等人确认：路由歧义/高风险、大爆炸半径的设计、数据库或外部写操作、PR/发布/部署。
 
-### 4. 无人值守运行
+### 5. 无人值守运行
 
 ```bash
 engine/scripts/loop-run.sh --task <task-dir> --workspace <项目根> \
