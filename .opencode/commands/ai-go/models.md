@@ -1,15 +1,19 @@
 ---
-description: Discover available models, propose a strong/execution pairing for the role agents, and write the OpenCode bindings after user confirmation.
+description: Discover available models, propose a strong/execution pairing for the role agents, and write the OpenCode bindings after user confirmation. Re-run anytime to update the bindings; --reset removes them.
 ---
 
-Set up model bindings for the engine's role agents. Unbound subagents inherit
-the invoking primary agent's model, so the protocol's strong/execution tiers
-(SSOT: the Roles table in `engine/loop-engineering.md`) do nothing until bound.
-This command lets the main agent do the binding: discover what is available,
-propose a sensible pairing, confirm with the user once, write the config.
+Set up — or update — model bindings for the engine's role agents. Unbound
+subagents inherit the invoking primary agent's model, so the protocol's
+strong/execution tiers (SSOT: the Roles table in `engine/loop-engineering.md`)
+do nothing until bound. This command lets the main agent do the binding:
+discover what is available, propose a sensible pairing, confirm with the user
+once, write the config. **Re-running it is the update path**: run it again
+after new models ship or when you want a different pairing, and the confirmed
+pairing replaces the previous bindings.
 
 User input (optional: an explicit pairing like `<strong-model> + <execution-model>`,
-and/or `--global` to write the global config instead of the workspace config):
+`--global` to target the global config instead of the workspace config, or
+`--reset` to remove the engine's bindings):
 
 `$ARGUMENTS`
 
@@ -18,6 +22,9 @@ Workflow:
 1. **Discover.** Run `opencode models` to list the models available in this
    installation. If the command is unavailable or empty, ask the user to name
    their providers or paste their model list.
+   Then read the target config (when it exists) and note the current bindings
+   for the engine's role agents — this is an update when they exist, a fresh
+   setup when they do not.
 2. **Classify and propose.** Pick one pairing using judgment:
    - **Strong** (deep reasoning: architecture, review, investigation): the
      most capable reasoning model available.
@@ -29,13 +36,16 @@ Workflow:
    Claude Sonnet 4.6). Do not invent model IDs — propose only IDs that appear
    in the discovered list, in `provider/model-id` form.
 3. **Confirm — exactly one question.** Show the proposed pairing (strong,
-   execution, compaction) and the write target, and ask the user to accept or
-   override. Default target: `opencode.json` at the workspace root; with
-   `--global`, `~/.config/opencode/opencode.json`. When `$ARGUMENTS` already
-   names the pairing, skip the question and use it.
+   execution, compaction), the **current bindings when updating** (so the user
+   sees old -> new), and the write target; ask the user to accept or override.
+   Default target: `opencode.json` at the workspace root; with `--global`,
+   `~/.config/opencode/opencode.json`. When `$ARGUMENTS` already names the
+   pairing, skip the question and use it.
 4. **Write the bindings.** Merge into the target config — read it first when
-   it exists, preserve every unrelated key, and never overwrite an existing
-   explicit binding without saying so:
+   it exists and preserve every unrelated key. On an update, the confirmed
+   pairing replaces the engine's previous role bindings (that is the point of
+   re-running); anything the user bound manually outside these roles is left
+   alone:
    - Strong tier — each of these agents gets
      `{ "mode": "subagent", "model": "<strong>" }`:
      `ai-go-product-analyst`, `ai-go-system-architect`,
@@ -53,8 +63,14 @@ Workflow:
    - Offer (do not force) setting the top-level `"model"` to the strong pick
      as the default main-session model.
 5. **Validate and report.** Check the file parses as JSON (for example
-   `python3 -m json.tool`), show the resulting `agent` block, and remind the
-   user to restart OpenCode — bindings apply to new sessions only.
+   `python3 -m json.tool`), show the resulting `agent` block (old -> new when
+   updating), and remind the user to restart OpenCode — bindings apply to new
+   sessions only.
+
+`--reset`: instead of proposing a pairing, remove the engine role agents'
+entries (and the compaction binding this command added) from the target
+config after one confirmation, restoring inherit-from-main behavior. Unrelated
+keys stay untouched.
 
 Hard limits: this command edits OpenCode config files only — never code, never
 engine files. Never write without the user's confirmation of the pairing
