@@ -37,10 +37,12 @@ for agent in "$ROOT"/engine/agents/ai-go-*.md; do
     exit 1
   }
 done
-diff -q "$ROOT/engine/commands/loop.md" "$ROOT/.opencode/commands/ai-go/loop.md" >/dev/null || {
-  echo "Drift: loop command differs between engine/ and .opencode/ (run scripts/sync-engine-assets.sh)" >&2
-  exit 1
-}
+for cmd in "$ROOT"/engine/commands/*.md; do
+  diff -q "$cmd" "$ROOT/.opencode/commands/ai-go/$(basename "$cmd")" >/dev/null || {
+    echo "Drift: $(basename "$cmd") differs between engine/ and .opencode/ (run scripts/sync-engine-assets.sh)" >&2
+    exit 1
+  }
+done
 diff -q "$ROOT/engine/skills/ai-go-loop/SKILL.md" "$ROOT/.opencode/skills/ai-go-loop/SKILL.md" >/dev/null || {
   echo "Drift: ai-go-loop skill differs between engine/ and .opencode/ (run scripts/sync-engine-assets.sh)" >&2
   exit 1

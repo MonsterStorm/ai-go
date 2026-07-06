@@ -90,6 +90,7 @@ WORKSPACE_DIR="$(cd "$WORKSPACE_DIR" && pwd)"
 STATE_FILE="$TASK_DIR/loop/state.md"
 LOG_DIR="$TASK_DIR/loop/logs"
 HANDBOOK="$ENGINE_DIR/loop-engineering.md"
+CARD="$ENGINE_DIR/references/iteration-card.md"
 
 mkdir -p "$LOG_DIR"
 
@@ -144,17 +145,21 @@ while [ "$i" -le "$MAX_ITERATIONS" ]; do
   ITER_START=$(date +%s)
 
   PROMPT="You are executing ONE iteration of a loop-engineering task.
-Protocol (read first and follow exactly): $HANDBOOK
+Iteration card (read first and follow): $CARD
+Full protocol (SSOT): $HANDBOOK — read it only when the card is insufficient:
+routing an unrouted task, the review phase, an escalation, or any doubt about
+gates.
 Loop task directory: $TASK_DIR
 Workspace root: $WORKSPACE_DIR
 The workspace may contain multiple independent git repositories; never treat the
 workspace root as one repository. Work only in the repositories this loop's
 Router lists, and commit separately in every repository you modify.
 Read $TASK_DIR/spec.md, $TASK_DIR/plan.md, and $TASK_DIR/loop/state.md, then
-execute exactly one iteration per the Iteration Contract: one slice, verify with
-the owning repository's commands, append the iteration log entry with evidence,
-update Next Action and Status, tick plan.md, and commit in each modified
-repository.
+execute exactly one iteration per the Iteration Contract: one slice — or one
+bounded batch of small consecutive slices where the protocol's batching rule
+allows — verify with the owning repository's commands, append the iteration log
+entry with evidence (one line per completed slice), update Next Action and
+Status, tick plan.md, and commit in each modified repository.
 If every acceptance criterion appears complete, act as the independent
 ai-go-delivery-reviewer per the protocol's Review phase instead of implementing.
 Set Status to BLOCKED (with Blocked-Reason) when you need a human decision or hit
