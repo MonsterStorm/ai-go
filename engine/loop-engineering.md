@@ -37,6 +37,7 @@ implementation:
 | Judgment | Meaning |
 | --- | --- |
 | Intent (mode) | feature dev, fix, read-only analysis, design, review, test backfill |
+| Scale | `light` or `standard` — how much process this loop carries (see Proportionality) |
 | Touched repositories | which of the workspace's repositories this loop will read or modify |
 | Write risk | does this need code changes, branches, DB writes, external calls |
 | Uncertainty | should the loop ask first, explore first, or design-then-confirm |
@@ -71,6 +72,40 @@ Modes are replaceable execution strategies, not commands the user must memorize:
 
 Read-only modes never create branches and never modify code. New capabilities
 extend this mode library rather than adding top-level commands.
+
+## Proportionality: Light Versus Standard Loops
+
+Loop overhead must be proportional to task size — a two-line fix must not pay
+the ceremony of a cross-service feature. The router classifies every loop's
+**Scale** alongside its mode:
+
+| Scale | When | Process |
+| --- | --- | --- |
+| `light` | Single repository, small blast radius, clear acceptance criteria, expected to finish within a few slices | Minimum ceremony (defaults below) |
+| `standard` | Everything else: multi-repo, unclear requirements, high risk, large blast radius | Full Default Strategy |
+
+Light-loop defaults (each is a default, not a licence to skip safety):
+
+- **Task record**: spec.md with verifiable acceptance criteria is still
+  required; the slice checklist may live inside spec.md instead of a separate
+  plan.md.
+- **Design**: no separate design document — a short design note in spec.md is
+  enough. Writing a formal design for a small fix is waste, not rigor.
+- **Roles**: consult no role subagents during the work unless a domain decision
+  is genuinely non-obvious. The independent delivery review still happens, but
+  scoped to the acceptance criteria (there is no design document to diff
+  against).
+- **Verification**: targeted checks per slice, plus one full verification pass
+  before review — not the full suite after every slice.
+- **State updates**: batched per the update-frequency rule (see Loop Task
+  State).
+- **Ratchet**: run only when the loop actually produced a durable lesson.
+
+What never scales down: verifiable acceptance criteria, verification evidence
+before claims, the independent reviewer as the only DONE gate, and hard gates.
+Escalate a light loop to standard the moment reality disagrees with the router
+— new repositories touched, hidden complexity, or a failing slice that resists
+a quick fix — and record the escalation in the iteration log.
 
 ## Workspace Scope: Multi-Repository Loops
 
@@ -138,6 +173,7 @@ tasks/<project-or-cross-project>/<task>/
 ## Router
 
 - Goal: <one sentence>
+- Scale: <light | standard>
 - Stop conditions: <verifiable list>
 - Repositories: <touched repos with read/write and dependency order>
 - Roles: <subagents this loop consults>
@@ -149,7 +185,8 @@ tasks/<project-or-cross-project>/<task>/
 ## Iteration Log
 
 ### Iteration <n> (<UTC timestamp>)
-- Did: <what changed, files touched>
+- Did: <what changed, files touched — one line per completed slice when the
+  entry covers a batch>
 - Repos: <repositories modified, commit hash per repo>
 - Verified: <commands run and results — evidence, not claims>
 - Next: <what the next iteration should do>
@@ -160,6 +197,14 @@ Rules:
 - The `- Status:` line is the contract with the harness. Exactly one status line,
   uppercase value, nothing else on the line.
 - Append to the Iteration Log; never rewrite history.
+- **Update frequency**: writing state costs time — batch it without losing
+  traceability. In-session loops append one iteration-log entry per completed
+  batch (at most every three slices), and always write immediately on any
+  Status change, any pause for the user, before independent review, and at
+  session end. Harness-driven loops write state every iteration: under the
+  harness the state file is the only memory between sessions and the stall
+  brake reads it. Traceability is preserved either way — every completed slice
+  gets its own line inside the batched entry, and its repositories' commits.
 - **Acceptance criteria are append-only.** Agents may mark a criterion passed
   (with evidence) but must never delete, weaken, or reword criteria to make the
   loop pass. Removing a criterion requires the human.
@@ -208,21 +253,32 @@ review before DONE.
 Each iteration, whether in-session or driven by the harness:
 
 1. **Get your bearings.** Read spec.md, plan.md, and loop/state.md; check
-   `git log` for recent work. Trust the files over memory.
+   `git log` for recent work. Trust the files over memory. In a continuing
+   session, do not re-read files that are already in context and unchanged —
+   re-reading costs time and adds nothing.
 2. **Verify the current state before building.** Run the project's cheap smoke
-   verification first; if the last iteration left things broken, fix that before
+   verification first — once per session or harness iteration, not before
+   every slice; if the last iteration left things broken, fix that before
    starting anything new.
-3. Pick exactly one next slice (the Next Action, or the first unchecked plan item).
-4. Implement it, consulting role agents where their expertise applies.
-5. Verify with the owning repository's commands. Evidence before claims: a slice
-   without passing verification is not done. User-facing features must be
-   verified the way a user experiences them (for web UI: browser-level checks,
-   not only unit tests and curl).
+3. Pick the next slice (the Next Action, or the first unchecked plan item).
+   **Small consecutive slices may run as one batch**: finish and verify each
+   before starting the next, cap a batch at three slices, and stop the batch
+   at the first failure.
+4. Implement it, consulting role agents where their expertise applies — and
+   only then; a consultation that changes nothing is pure latency.
+5. Verify with the owning repository's commands, choosing the cheapest check
+   that proves the slice; run the full verification suite once before review
+   rather than after every slice. Evidence before claims: a slice without
+   passing verification is not done. User-facing features must be verified the
+   way a user experiences them (for web UI: browser-level checks, not only
+   unit tests and curl).
 6. On failure, fix and re-verify within the iteration if feasible; otherwise
    record the failure honestly in the log.
-7. Update state.md: append the iteration log entry, set Next Action, tick plan.md.
-8. **Leave a clean state.** Commit the slice with a descriptive message — one
-   commit in each repository the slice modified, plus the state update in the
+7. Update state.md per the update-frequency rule: append the iteration log
+   entry (one line per completed slice), set Next Action, tick plan.md.
+8. **Leave a clean state.** Commit the completed work with a descriptive
+   message — one commit per modified repository per iteration (a batch of
+   small slices may share one commit), plus the state update in the
    task-record repository — so any iteration is one revert away and the next
    session starts from a mergeable baseline in every repo. No half-implemented,
    undocumented work.
@@ -288,7 +344,9 @@ its own standards.
 Model tiers: **strong** = deep reasoning, global judgment, architecture and
 review work; **execution** = fast accurate implementation against clear
 instructions. Bind concrete models per workspace via the OpenCode agent `model`
-field; do not hardcode model IDs in engine files.
+field; do not hardcode model IDs in engine files. Loop wall-clock time is
+dominated by model latency: binding execution-tier roles to genuinely fast
+models matters more for speed than any protocol tuning.
 
 ### Functional positions (maker/checker)
 
