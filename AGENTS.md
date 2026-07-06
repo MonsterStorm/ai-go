@@ -25,6 +25,9 @@ knowledge base.
   never edit them directly.
 - Keep everything in this repository project-agnostic: no references to any
   specific company, workspace, sibling project, or local user path.
+- Multi-language documents follow the `<name>.<lang>.md` convention (e.g.
+  `prompt-prd-to-tech-design.en.md` / `.zh.md`); keep language variants in
+  sync when editing one of them.
 - Verification: run `bash tests/<test>.sh` for every script you change; all
   tests must pass before handoff.
 

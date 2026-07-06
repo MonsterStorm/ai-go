@@ -1,8 +1,28 @@
 # ai-go
 
-**一个会自己干完活的研发引擎。** 给它一个目标，它自主完成 研究 → 设计 → 计划 → 迭代（实现 → 验证 → 修复），直到一个"没写过这份代码"的独立评审确认全部验收标准——只有它有权说"完成"。全程状态落盘，随时中断、随时续跑、可整夜无人值守。
+**Loop Engineering · Self-Improving · Trustworthy Delivery**
 
-ai-go 不是又一个 Agent 框架。它是一份**协议**（Markdown 写成的循环契约）+ **13 个专业角色**（maker/checker 严格分离）+ **一个 harness 脚本**（无人值守驱动器），跑在 [OpenCode](https://opencode.ai) 上。没有 SDK，没有 DSL，没有需要学习的编排图——全部实现可读、可审计、可魔改。
+一个会自己干完活、并且越用越聪明的研发引擎。给它一个目标，它自主完成 研究 → 设计 → 计划 → 迭代（实现 → 验证 → 修复），直到一个"没写过这份代码"的独立评审确认全部验收标准——然后把这次踩过的坑沉淀成规则，下次不再犯。
+
+---
+
+## 目录
+
+- [是什么](#是什么)
+- [为什么做](#为什么做)
+- [核心价值](#核心价值)
+- [核心板块](#核心板块)
+- [安装使用](#安装使用)
+- [平台支持](#平台支持)
+- [其他说明](#其他说明)
+- [问题反馈与贡献](#问题反馈与贡献)
+- [开源协议](#开源协议)
+
+---
+
+## 是什么
+
+ai-go 是一个跑在 [OpenCode](https://opencode.ai) 上的 **loop-engineering 研发引擎**：
 
 ```text
 你：/ai-go:loop 实现会员自动续费
@@ -12,34 +32,24 @@ ai-go 不是又一个 Agent 框架。它是一份**协议**（Markdown 写成的
       → 把这次踩的坑沉淀成规则（Ratchet）
 ```
 
----
+它**不是又一个 Agent 框架**。没有 SDK、没有 DSL、没有要学的编排图——它是一份**协议**（Markdown 写成的循环契约）+ **13 个专业角色**（maker/checker 严格分离）+ **一个 harness 脚本**（无人值守驱动器）。全部实现可读、可审计、可魔改。
 
-## 它和其他东西有什么不同
+## 为什么做
 
-一句话：**别人给你一个更强的"助手"或一个更复杂的"框架"，ai-go 给你一套可交付的"研发系统"。**
+用 AI 写代码的人迟早会撞上四堵墙：
 
-| 对比 | 它们的模型 | ai-go 的模型 |
-| --- | --- | --- |
-| **交互式 AI 助手**（Copilot / Cursor / 裸用 Claude Code） | 你在环内逐条指挥，"完成"由干活的 AI 自己宣布，记忆随会话蒸发 | 目标进、交付出；写代码的角色**无权**宣布完成，独立交付评审重跑验证命令后才能置 DONE；记忆全部落在 git 与状态文件里 |
-| **编排框架**（LangGraph / CrewAI / AutoGen） | 用代码把工作流写死成图和流水线，先学 SDK 再干活 | **零框架代码**。研发不是装配线——协议只定义目标、停止条件与评审机制，执行路径由模型按任务自选（six modes, one router） |
-| **"全自动" Agent**（AutoGPT 一脉） | 自主性强但无验证纪律，跑飞了没人拦 | 证据先于结论（没有验证输出的切片不算完成）、三连败熔断、停滞刹车、迭代上限、硬性风控门（DB 写 / 发布 / PR 必停） |
-| **Agent 产品**（Devin 类） | 黑盒 SaaS，无法审计，难以按团队规矩定制 | 全部是 Markdown + Bash，MIT 协议；把你的规矩写进知识库入口，引擎当场遵守 |
-| **无人值守循环脚本**（Ralph loop 及其变体） | 静态 PROMPT.md + while true，无角色、无风控 | 同样"每迭代一个新会话"，但换成**结构化状态契约**（机器可解析的 state.md）+ 13 角色 + 退出码语义（DONE/BLOCKED/超限/停滞） |
+1. **助手要人带。** 交互式助手（Copilot / Cursor / 裸用 Claude Code）由你在环内逐条指挥——AI 在打工，你在全职当监工。
+2. **"完成"不可信。** 干活的 AI 自己宣布"做完了"，而它对自己的作品总是太宽容；你每次都要重新验一遍。
+3. **知识随会话蒸发。** 这个会话里教会它的项目规矩、踩过的坑，下个会话全部归零，永远在重复解释。
+4. **框架把路走死。** 编排框架（LangGraph / CrewAI / AutoGen）要求你预先把研发写成固定的图和流水线——可研发不是装配线，一个 bug 可能是五分钟也可能是一天，硬编码流程毁掉的恰恰是你雇 AI 来提供的判断力。
 
-四个最值得知道的设计决策：
+ai-go 的回答：**不造更强的助手，造一套可交付的系统**——目标进、交付出，完成由独立评审说了算，知识落在仓库里复利增长，执行路径由模型按任务自选。
 
-1. **唯一能说"完成"的，是没写代码的那个。** maker/checker 分离贯穿到底：技术评审在过程中把关，交付评审在最后以全新会话逐条重验验收标准——迭代日志里的"我验过了"只是主张，评审自己的命令输出才是证据。
-2. **Agent 会忘，仓库不忘。** 不与上下文窗口对抗：每个任务是一条任务记录（spec / plan / state），每次迭代一个干净 commit，无人值守模式下每次迭代都是全新会话读文件续跑。换机器、断网、隔一周，都能接上。
-3. **引擎不带任何项目私货。** 引擎对目标项目只有四个假设：一个 `AGENTS.md` 知识入口、一组验证命令、一个任务记录位置、一组硬性红线。满足即可零改动运行——这不是口号，是被导出工具链和测试强制执行的边界。
-4. **失败不白费（Ratchet）。** 每个真实踩坑被写成一条短规则，放在下一个 agent 一定会读到的位置；规则失去价值就删。系统随使用变聪明，而不是随规则膨胀变笨。
+## 核心价值
 
----
+### 1. Loop Engineering（循环工程）
 
-## 设计
-
-### Loop ≠ 流水线
-
-Loop 是**目标驱动系统，不是流程引擎**。一个 bug 可能是五分钟的单文件修改，也可能是一整天的跨服务排查——硬编码执行阶段会毁掉你雇 AI 来提供的判断力。引擎只定义三样东西：**目标与约束、停止条件、评审机制**。它建立在这个分层之上：
+Loop 是目标驱动系统，不是流程引擎。引擎只定义三样东西：**目标与约束、停止条件、评审机制**，执行步骤交给模型判断。它位于工程能力栈的最上层：
 
 ```text
 Prompt Engineering   -> 教 AI 做好一件事
@@ -48,13 +58,51 @@ Harness Engineering  -> 搭建 AI 运行的环境（工具、权限、沙箱）
 Loop Engineering     -> 设计一个自己找活、派活、验活的系统
 ```
 
-### 引擎 / 知识分离
+### 2. Self-Improving（自进化 / 自升级）
 
-最重要的架构决策：**引擎（怎么干活）与项目知识（这个项目的规矩）彻底解耦。**
+系统**越用越聪明**，机制叫 **Ratchet（棘轮）**——只进不退：
+
+- **每个真实失败变成一条规则**，写在下一个 agent 一定会读到的位置（知识索引、评审标准、角色文件）；
+- **知识在仓库里复利**：架构认知、项目约定、历史踩坑都沉淀在 `knowledge/index.md` 与任务记录中，跨会话、跨机器、跨人复用；
+- **只增有据的规则，删过时的规则**：每条规则可追溯到一次具体失败，模型进步让规则失去价值时就删掉——防止知识库膨胀成没人读的风格指南。
+
+### 3. Trustworthy Delivery（可信交付）
+
+- **maker/checker 分离贯穿到底**：技术评审在过程中把关，交付评审在最后以全新会话逐条重验验收标准；
+- **唯一能说"完成"的，是没写代码的那个**：写代码的角色无权置 DONE；
+- **证据先于结论**：迭代日志里的"我验过了"只是主张，评审自己跑出来的命令输出才是证据；验收标准只增不删，不许为了过关而改题。
+
+### 4. Durable Memory（持久记忆）
+
+Agent 会忘，仓库不忘。每个任务是一条任务记录（spec / plan / state），每次迭代一个干净 commit；断点续跑、跨机器恢复、隔一周接着干都没问题。不与上下文窗口对抗——无人值守模式下每次迭代都是全新会话读文件续跑。
+
+### 5. Unattended but Braked（无人值守，但有刹车）
+
+可以整夜自己跑，但每个刹车都是硬的：迭代上限、停滞刹车（状态连续两轮无变化即停）、三连败熔断（同一错误三轮即 BLOCKED）、硬性风控门（数据库写 / 外部写接口 / PR / 发布 / 部署必停等人）。
+
+### 6. Portable by Contract（契约级可移植）
+
+引擎与项目知识彻底解耦。引擎对目标项目只有四个假设：一个 `AGENTS.md` 知识入口、一组验证命令、一个任务记录位置、一组硬性红线。满足即可零改动运行——这不是口号，是被导出工具链和测试强制执行的边界（引擎文件里不允许出现任何项目私货）。
+
+### 7. Transparent & Hackable（全透明，可魔改）
+
+协议、角色、命令、技能全部是 Markdown，harness 是一个 Bash 脚本；MIT 协议。想改评审标准、加角色、换模型档位，打开文件就能改。
+
+### 一张表看差异
+
+| 对比 | 它们的模型 | ai-go 的模型 |
+| --- | --- | --- |
+| **交互式 AI 助手**（Copilot / Cursor / 裸用 Claude Code） | 你在环内逐条指挥，"完成"由干活的 AI 自己宣布，记忆随会话蒸发 | 目标进、交付出；独立交付评审重跑验证后才能置 DONE；记忆全落在 git 与状态文件 |
+| **编排框架**（LangGraph / CrewAI / AutoGen） | 用代码把工作流写死成图，先学 SDK 再干活 | 零框架代码；协议只定义目标、停止条件与评审机制，路径由模型自选 |
+| **"全自动" Agent**（AutoGPT 一脉） | 自主性强但无验证纪律，跑飞了没人拦 | 证据先于结论 + 三连败熔断 + 停滞刹车 + 硬性风控门 |
+| **Agent 产品**（Devin 类） | 黑盒 SaaS，无法审计，难按团队规矩定制 | 全部 Markdown + Bash，MIT；把规矩写进知识入口，引擎当场遵守 |
+| **无人值守循环脚本**（Ralph loop 及变体） | 静态 PROMPT.md + while true，无角色无风控 | 结构化状态契约 + 13 角色 + 退出码语义（DONE/BLOCKED/超限/停滞） |
+
+## 核心板块
 
 ```text
 ┌─────────────────────────────────────────────────┐
-│  engine/  （本仓库，可移植，项目无关）              │
+│  engine/  （引擎：可移植，项目无关）                │
 │  循环协议 · 13 个角色子代理 · loop 命令/技能 ·      │
 │  无人值守 harness                                 │
 └──────────────────────┬──────────────────────────┘
@@ -63,35 +111,22 @@ Loop Engineering     -> 设计一个自己找活、派活、验活的系统
 ┌─────────────────────────────────────────────────┐
 │  目标项目的知识库（由 init-knowledge-base.sh 初始化）│
 │  AGENTS.md（入口：验证命令、红线、约定）             │
-│  knowledge/index.md（架构、约定、踩坑记录）          │
+│  knowledge/index.md（架构、约定、踩坑 → 自进化载体） │
 │  tasks/（任务记录：spec / plan / loop 状态）        │
 └─────────────────────────────────────────────────┘
 ```
 
-### 单一入口与六种模式
-
-用户只需要记住一个命令：`/ai-go:loop <目标>`。循环启动时先做一次轻量**路由**——意图、涉及仓库、写风险、不确定性、停止条件、需要的角色——然后自选执行策略：
-
-| 模式 | 典型输入 | 默认写范围 |
+| 板块 | 位置 | 说明 |
 | --- | --- | --- |
-| `design` | "PRD → 技术方案" | 仅任务产物 |
-| `dev` | "实现 X" | 代码、测试、文档（分支/worktree） |
-| `fix` | "修这个 bug" | 代码、测试、文档（分支/worktree） |
-| `analyze` | "为什么会发生 Y" | 只读 |
-| `review` | "评审这个方案/PR" | 只读 |
-| `test` | "给 Z 补测试" | 仅测试 |
+| **循环协议（SSOT）** | `engine/loop-engineering.md` | 路由、六种模式（design/dev/fix/analyze/review/test）、多仓库规则、状态格式、迭代契约、停止条件、风险控制、Ratchet |
+| **13 个专业角色** | `engine/agents/` | 产品分析 · 系统架构 · 后端架构 · 前端 · 移动端 · 数据 · AI · DevOps · 安全 · 测试 · 问题修复 · 技术评审 · **交付评审（唯一可置 DONE）** |
+| **单一入口** | `engine/commands/loop.md` | `/ai-go:loop <目标>`，内部路由，用户无需预判任务类型 |
+| **会话技能** | `engine/skills/ai-go-loop/` | "loop this task"、"自动迭代交付" 等短语直接触发 |
+| **无人值守 harness** | `engine/scripts/loop-run.sh` | 每迭代一个全新会话，退出码语义化，自带各种刹车 |
+| **知识库初始化器** | `scripts/init-knowledge-base.sh` | 一条命令让任何项目具备运行引擎的全部前提 |
+| **模板与测试** | `templates/`、`tests/` | 知识库脚手架模板；脚本与部署的契约测试 |
 
-### 13 个专业角色
-
-覆盖研发全生命周期，checker 在工具层强制只读、只提意见不改代码：
-
-产品分析 · 系统架构 · 后端架构 · 前端专家 · 移动端专家 · 数据工程 · AI 工程 · DevOps · 安全工程 · 测试工程 · 问题修复 · 技术评审 · **交付评审（唯一可置 DONE 的角色）**
-
-完整协议见 [`engine/loop-engineering.md`](engine/loop-engineering.md)（SSOT），设计哲学与开源先例分析见 [`engine/references/loop-philosophy.md`](engine/references/loop-philosophy.md)，V1 原始设计文档见 [`skills/loop-engineering-design/`](skills/loop-engineering-design/loop-engineering-design.md)。
-
----
-
-## 快速开始
+## 安装使用
 
 ### 0. 前置条件
 
@@ -159,38 +194,43 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <项目根> \
   [--max-iterations 10] [--iteration-timeout 1800] [--agent <只读agent>]
 ```
 
-每次迭代启动一个全新 `opencode run` 会话（新鲜上下文优于累积上下文），迭代间通过 `state.md` 交接。退出码：`0` DONE、`2` BLOCKED、`3` 达到迭代上限、`4` 协议/运行错误、`5` 停滞（状态连续两轮无变化）。
+每次迭代启动一个全新 `opencode run` 会话，迭代间通过 `state.md` 交接。退出码：`0` DONE、`2` BLOCKED、`3` 达到迭代上限、`4` 协议/运行错误、`5` 停滞。
 
 > ⚠️ 非交互模式会自动批准所有权限。只在可接受无人值守修改的仓库和特性分支上运行，优先使用沙箱/容器环境，凭证从紧配置。运行前请阅读 `engine/loop-engineering.md` 的 "Unattended Safety" 一节。
 
----
+## 平台支持
 
-## 仓库结构
+引擎的协议、角色、命令全部是纯 Markdown，harness 是 Bash——适配一个新平台主要是"资产格式转换 + 加载路径映射"，不涉及引擎逻辑改动：
 
-| 路径 | 说明 |
-| --- | --- |
-| `engine/loop-engineering.md` | 循环协议 SSOT：路由、模式、状态格式、迭代契约、停止条件、风险控制 |
-| `engine/agents/` | 13 个专业角色子代理 |
-| `engine/commands/loop.md` | `/ai-go:loop` 命令定义 |
-| `engine/skills/ai-go-loop/` | 会话触发技能（"loop this task"、"自动迭代交付" 等） |
-| `engine/scripts/loop-run.sh` | 无人值守 harness |
-| `engine/references/` | 设计哲学与背景资料 |
-| `scripts/init-knowledge-base.sh` | 一键初始化目标项目知识库（幂等） |
-| `scripts/install-opencode-engine.sh` | 全局安装引擎到 OpenCode 配置 |
-| `scripts/sync-engine-assets.sh` | 把 `engine/` 同步到本仓库 `.opencode/` |
-| `templates/` | 目标项目知识库模板 |
-| `tests/` | 脚本与部署的契约测试（`bash tests/<test>.sh`） |
-| `.opencode/` | OpenCode 项目级加载层：从 `engine/` 同步的副本，勿直接编辑 |
-| `prompts/`、`skills/loop-engineering-design/` | 技术方案 prompt 与 V1 系统设计文档（英文） |
+| 平台 | 状态 | 适配说明 |
+| --- | --- | --- |
+| **OpenCode** | ✅ 已支持 | 一等公民：`.opencode/` 项目级部署 + 全局安装，`/ai-go:loop`、技能、13 个子代理开箱即用 |
+| **Claude Code** | 🗺️ 规划中 | 角色代理 → `.claude/agents/`，loop 命令 → slash command，协议文件直接复用 |
+| **Cursor** | 🗺️ 规划中 | 知识入口 → Cursor rules，loop 命令 → Cursor commands，子代理经由其 agent 机制加载 |
+| **Codex** | 🗺️ 规划中 | 角色代理 → TOML 配置，harness 的 `opencode run` 换成对应 CLI 调用（`OPENCODE_BIN` 已可注入） |
 
-> **注意**：`engine/` 目录由维护者的上游工作区通过同步脚本生成，属于同步产物。请勿直接修改 `engine/` 或 `.opencode/` 下的引擎文件——改动会在下次同步时被覆盖。本仓库自有能力放在 `scripts/`、`templates/`、`tests/`。
+想优先支持某个平台，或愿意贡献适配？请开一个 [Issue](https://github.com/MonsterStorm/ai-go/issues) 或直接提 PR——适配的验收标准很简单：在该平台上跑通 `设计 → 迭代 → 独立评审置 DONE` 的完整循环。
 
-## 测试
+## 其他说明
+
+- **文档语言约定**：技术文档按语言分文件，命名 `<name>.zh.md` / `<name>.en.md`，未来可扩展更多语言（如 `<name>.ja.md`）。当前双语文档：
+  - PRD → 技术方案 prompt：[English](prompts/prompt-prd-to-tech-design.en.md) | [中文](prompts/prompt-prd-to-tech-design.zh.md)
+  - V1 系统设计（设计历史）：[English](skills/loop-engineering-design/loop-engineering-design.en.md) | [中文](skills/loop-engineering-design/loop-engineering-design.zh.md)
+- **引擎目录是同步产物**：`engine/` 由维护者的上游工作区通过同步脚本生成，请勿直接修改 `engine/` 或 `.opencode/` 下的引擎文件——改动会在下次同步时被覆盖。本仓库自有能力放在 `scripts/`、`templates/`、`tests/`。
+- **测试**：
 
 ```bash
 bash tests/engine-deployment-test.sh    # 引擎布局与 .opencode/ 副本一致性
 bash tests/init-knowledge-base-test.sh  # 知识库初始化：产物、幂等、git 地址、失败路径
 ```
+
+- **深入阅读**：协议 SSOT [`engine/loop-engineering.md`](engine/loop-engineering.md)；设计哲学与开源先例 [`engine/references/loop-philosophy.md`](engine/references/loop-philosophy.md)。
+
+## 问题反馈与贡献
+
+- **Bug / 需求 / 讨论**：[GitHub Issues](https://github.com/MonsterStorm/ai-go/issues)。报告循环相关问题时，请附上任务记录（`spec.md` / `plan.md` / `loop/state.md` 的相关片段），这是定位问题最快的证据。
+- **欢迎的贡献方向**：新平台适配（Claude Code / Cursor / Codex）、知识库模板改进、文档翻译（按 `<name>.<lang>.md` 约定）、契约测试补充。
+- **改动约定**：`engine/` 不接受直接修改（同步产物）；脚本类改动请保证 `tests/` 全绿。
 
 ## 开源协议
 

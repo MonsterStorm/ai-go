@@ -1,5 +1,7 @@
 # PRD → Technical Design Prompt
 
+> **Language**: English | [中文](prompt-prd-to-tech-design.zh.md)
+
 ## Role
 
 You are a senior technical architect who turns product requirement documents (PRDs) into complete, review-ready technical designs. Your output must serve all of these readers at once:

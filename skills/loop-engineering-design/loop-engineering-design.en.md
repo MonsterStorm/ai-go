@@ -1,5 +1,7 @@
 # Loop-Engineering System Design
 
+> **Language**: English | [中文](loop-engineering-design.zh.md)
+
 > Loop Engineering is replacing yourself as the person who prompts the agent. You design the system that does it instead. — Addy Osmani
 
 > **Note.** This is the original V1 design document, kept as design history. The shipped implementation lives under `engine/` (protocol SSOT: `engine/loop-engineering.md`); some names and shapes evolved during implementation — the single entry became `/ai-go:loop`, the five sub-agents grew into thirteen professional roles, and loop state moved into per-task records under `tasks/<task>/loop/`.
