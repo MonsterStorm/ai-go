@@ -340,11 +340,12 @@ apply it:
 
 ## Roles
 
-Professional role subagents live in `engine/agents/` (SSOT), are deployed to
-`.opencode/agents/` for project-scope loading, and can be installed globally by
-the host repository's installer script (see the repository README). The executor
-consults them via task invocation or `@` mention; each role file is the SSOT for
-its own standards.
+Professional role subagents live in `engine/agents/` (SSOT) and are deployed to
+`.opencode/agents/` for project-scope loading. The host repository's installer
+script deploys them into a chosen workspace's `.opencode/` so they load only
+there; global installation is an explicit opt-in (see the repository README).
+The executor consults them via task invocation or `@` mention; each role file
+is the SSOT for its own standards.
 
 | Agent | Use for | Model tier |
 | --- | --- | --- |
