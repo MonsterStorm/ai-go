@@ -90,6 +90,7 @@ WORKSPACE_DIR="$(cd "$WORKSPACE_DIR" && pwd)"
 STATE_FILE="$TASK_DIR/loop/state.md"
 LOG_DIR="$TASK_DIR/loop/logs"
 HANDBOOK="$ENGINE_DIR/loop-engineering.md"
+CARD="$ENGINE_DIR/references/iteration-card.md"
 
 mkdir -p "$LOG_DIR"
 
@@ -144,7 +145,10 @@ while [ "$i" -le "$MAX_ITERATIONS" ]; do
   ITER_START=$(date +%s)
 
   PROMPT="You are executing ONE iteration of a loop-engineering task.
-Protocol (read first and follow exactly): $HANDBOOK
+Iteration card (read first and follow): $CARD
+Full protocol (SSOT): $HANDBOOK — read it only when the card is insufficient:
+routing an unrouted task, the review phase, an escalation, or any doubt about
+gates.
 Loop task directory: $TASK_DIR
 Workspace root: $WORKSPACE_DIR
 The workspace may contain multiple independent git repositories; never treat the

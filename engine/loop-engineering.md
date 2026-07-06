@@ -288,6 +288,27 @@ Each iteration, whether in-session or driven by the harness:
 Failure brake: three consecutive iterations failing on the same error means stop
 retrying, write up what was tried, and set BLOCKED. Do not burn iterations on a wall.
 
+## Execution Economy
+
+Tool calls dominate wall-clock time; tokens dominate cost. Every rule here cuts
+one or the other without touching safety:
+
+- **Read once.** Batch independent file reads; never re-read a file that is in
+  context and unchanged. Prefer targeted searches (the symbol, the config key)
+  over dumping directory trees.
+- **Fewer, bigger commands.** Chain dependent shell steps into one invocation
+  where failure semantics allow, instead of one call per step.
+- **Never re-verify the unchanged.** A verification that passed stays valid
+  until the code it proves changes; re-running it buys nothing.
+- **Terse state entries.** Iteration log lines are facts, commands, and
+  results — not narrative. Log verbosity is a token tax charged again at every
+  future get-bearings read.
+- **Harness iterations start from the card.** Unattended iterations read
+  `references/iteration-card.md` first and open this full protocol only when
+  the card is insufficient (routing an unrouted task, the review phase,
+  escalation, or any doubt about gates).
+- **Subagents are budgeted.** See Consultation economics under Roles.
+
 ## Stop Conditions
 
 | Condition | Status | Who decides |
@@ -369,6 +390,29 @@ the work happens, and the delivery reviewer independently gates final acceptance
 The delivery reviewer must not be the same session/agent instance that
 implemented the final slice — use a subagent invocation or a fresh harness
 iteration so review is independent.
+
+### Consultation economics
+
+A subagent invocation costs a fresh session, a full knowledge load, and a
+serial round trip — it is the most expensive move in the loop. Spend it only
+where it buys something reading cannot:
+
+- **Role files are standards documents first, agents second.** For guidance,
+  standards, or a checklist, read the role file inline instead of spawning the
+  agent. Spawn a subagent only when the task needs independent judgment
+  (checkers are always separate subagents — never inline a checker), a whole
+  deliverable is delegated (a full technical design, a professional test
+  pass), or genuinely fresh eyes.
+- **Brief every invocation.** Pass the goal, the specific question or
+  deliverable, the relevant paths or diff, constraints, and the expected
+  output form. A briefed subagent answers within the brief's scope instead of
+  re-walking the entire knowledge read path.
+- **Parallelize independent consultations** where the platform allows; go
+  serial only when one consultation's output feeds another.
+- **Checker cadence.** Tech review runs at phase boundaries (after design,
+  before delivery review), not per slice. Delivery review runs once at the
+  end; after NEEDS_WORK fixes it re-verifies the failed criteria and anything
+  the fixes touched, not the entire matrix from scratch.
 
 Release is intentionally not a role: loops prepare releases (changelogs, tag
 proposals, prerequisites) but release execution always goes through the release

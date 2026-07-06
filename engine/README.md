@@ -10,6 +10,7 @@ system and designed to move to other workspaces and repositories without edits.
 | --- | --- |
 | `loop-engineering.md` | Loop protocol SSOT: router, modes, state format, iteration contract, stop conditions, risk control |
 | `references/loop-philosophy.md` | Background: philosophy, six primitives, operator risks, open-source prior art (design-time reading, not per-iteration) |
+| `references/iteration-card.md` | Compact per-iteration contract for harness iterations (condensed from the protocol; kept in sync by tests) |
 | `agents/` | Thirteen professional role subagents: product analyst, system architect, backend architect, frontend expert, mobile expert, data engineer, AI engineer, DevOps engineer, security engineer, test engineer, issue fixer, tech reviewer, delivery reviewer |
 | `commands/loop.md` | `/ai-go:loop` command definition |
 | `skills/ai-go-loop/` | Conversational trigger skill |

@@ -53,9 +53,12 @@ Workflow:
    in-session; every iteration under the harness), and a commit in every
    repository the iteration modified — never treat the workspace root as one
    git repository.
-6. Consult role subagents where their expertise applies — the full roles table
-   with model tiers is in the protocol's Roles section. Keep maker and checker
-   separate; checkers respond PASS / NEEDS_WORK / BLOCK and never edit.
+6. Consult role subagents per the protocol's Consultation economics: read a
+   role file inline for guidance or standards; spawn a subagent only for
+   independent checks, delegated deliverables, or fresh eyes — always with a
+   scoped brief, in parallel when consultations are independent. Keep maker
+   and checker separate; checkers respond PASS / NEEDS_WORK / BLOCK and never
+   edit.
 7. Continue iterating within this session until a stop condition:
    reviewer-confirmed DONE, BLOCKED, or the context becoming too large to work
    reliably — in that case commit state and tell the user to resume with

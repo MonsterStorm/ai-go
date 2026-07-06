@@ -38,9 +38,11 @@ criteria, keeping all continuity in task files instead of the context window.
    iteration — committing separately in every repository the iteration
    modified; multi-repo slices execute serially in cross-repo dependency
    order.
-4. Consult role subagents where their expertise applies; the full roles table
-   with model tiers is in the protocol's Roles section. Keep maker and checker
-   separate; checkers respond PASS / NEEDS_WORK / BLOCK and never edit.
+4. Consult role subagents per the protocol's Consultation economics: read role
+   files inline for guidance; spawn subagents only for independent checks,
+   delegated deliverables, or fresh eyes, each with a scoped brief. Keep maker
+   and checker separate; checkers respond PASS / NEEDS_WORK / BLOCK and never
+   edit.
 5. Require `ai-go-delivery-reviewer` to independently verify acceptance criteria
    before setting DONE. Acceptance criteria are append-only.
 6. Stop on DONE, BLOCKED (human decision or hard gate), or repeated failure per the
