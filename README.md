@@ -161,15 +161,17 @@ scripts/init-knowledge-base.sh https://github.com/you/your-project
 /ai-go:loop fill in the knowledge base: explore this repository and complete every TODO in AGENTS.md and knowledge/index.md, grounded in the actual code; write scope: those two files only
 ```
 
-### 2.（可选）全局安装引擎
+### 2.（可选）把引擎装到更多作用域
 
-希望所有工作区都能用 `/ai-go:loop` 和角色代理、而不是逐项目部署时：
+**引擎默认只在你指定的项目里生效**：第 1 步的初始化已经把命令、技能、角色部署到目标项目的 `.opencode/`——只有在该项目里启动 OpenCode 才会加载，不会污染其他目录。需要更多作用域时用安装脚本（作用域必须显式指定）：
 
 ```bash
-scripts/install-opencode-engine.sh   # 默认装到 ~/.config/opencode
+scripts/install-opencode-engine.sh --workspace <root>       # 让某个项目/工作区生效（推荐）
+scripts/install-opencode-engine.sh --global                 # 显式选择全局：所有会话都会加载
+scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全局安装
 ```
 
-安装后重启 OpenCode。角色代理是 `mode: subagent`，不会出现在 Tab 主代理切换器里；在输入框输入 `@ai-go` 即可看到全部 13 个。
+安装/卸载后重启 OpenCode。角色代理是 `mode: subagent`，不会出现在 Tab 主代理切换器里；在输入框输入 `@ai-go` 即可看到全部 13 个。
 
 ### 3.（推荐）绑定 strong / execution 模型
 
@@ -218,7 +220,7 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <项目根> \
 
 | 平台 | 状态 | 适配说明 |
 | --- | --- | --- |
-| **OpenCode** | ✅ 已支持 | 一等公民：`.opencode/` 项目级部署 + 全局安装，`/ai-go:loop`、技能、13 个子代理开箱即用 |
+| **OpenCode** | ✅ 已支持 | 一等公民：`.opencode/` 项目级部署（默认，只在指定项目生效）+ 可选全局安装，`/ai-go:loop`、技能、13 个子代理开箱即用 |
 | **Claude Code** | 🗺️ 规划中 | 角色代理 → `.claude/agents/`，loop 命令 → slash command，协议文件直接复用 |
 | **Cursor** | 🗺️ 规划中 | 知识入口 → Cursor rules，loop 命令 → Cursor commands，子代理经由其 agent 机制加载 |
 | **Codex** | 🗺️ 规划中 | 角色代理 → TOML 配置，harness 的 `opencode run` 换成对应 CLI 调用（`OPENCODE_BIN` 已可注入） |

@@ -11,7 +11,7 @@ knowledge base.
 | --- | --- |
 | `engine/` | The engine itself. SSOT: `engine/loop-engineering.md`; layout: `engine/README.md` |
 | `.opencode/` | Synced copies of engine assets for OpenCode project-scope loading — never edit directly |
-| `scripts/` | `init-knowledge-base.sh` (initialize a target project), `install-opencode-engine.sh` (global install), `sync-engine-assets.sh` (refresh `.opencode/`) |
+| `scripts/` | `init-knowledge-base.sh` (initialize a target project), `install-opencode-engine.sh` (scoped install: `--workspace`/`--global`, plus `--uninstall`), `sync-engine-assets.sh` (refresh `.opencode/`) |
 | `templates/` | Knowledge-base scaffolding installed into target projects |
 | `prompts/`, `skills/loop-engineering-design/` | Design documents and prompt material behind the engine |
 | `tests/` | Bash contract tests for the scripts and engine deployment |
