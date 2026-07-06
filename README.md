@@ -177,6 +177,8 @@ scripts/install-opencode-engine.sh   # 默认装到 ~/.config/opencode
 
 **推荐方式：让主 Agent 自己来。** 在 OpenCode 里运行 `/ai-go:models`：它会读取当前可用的模型列表，提出一组配比建议（默认「最强推理模型 + 同厂经济型执行模型 + 便宜的压缩模型」，如 GPT-5.5 + GPT-5.4-mini，或 Claude Opus 4.8 + Claude Sonnet 4.6），第一轮对话向你确认（可直接接受或改配比），确认后自动合并写入配置，重启 OpenCode 生效。
 
+**要更新配置时（新模型上线、想换配比），重跑一遍 `/ai-go:models` 即可**：它会展示当前绑定与新建议的对照（旧 → 新），确认后覆盖引擎角色的旧绑定（你手动加的其他配置不受影响）；`/ai-go:models --reset` 则清除引擎绑定，恢复"子代理继承主会话模型"的默认行为。
+
 **手动方式**：从模板 [`templates/opencode-model-binding.example.json`](templates/opencode-model-binding.example.json) 开始，合并进 `~/.config/opencode/opencode.json`（全局）或工作区根 `opencode.json`（项目级，优先级更高）。三个要点：
 
 - 把示例模型 ID 换成你实际可用的（`opencode models` 可列出）；
