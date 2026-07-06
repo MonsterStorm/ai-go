@@ -173,7 +173,11 @@ scripts/install-opencode-engine.sh   # 默认装到 ~/.config/opencode
 
 ### 3.（推荐）绑定 strong / execution 模型
 
-**不绑定时，子代理会继承主会话的模型**，协议里的 strong/execution 分档不会自动生效——而循环耗时主要取决于模型延迟，这是收益最大的一项配置。从模板 [`templates/opencode-model-binding.example.json`](templates/opencode-model-binding.example.json) 开始，合并进 `~/.config/opencode/opencode.json`（全局）或工作区根 `opencode.json`（项目级，优先级更高）。三个要点：
+**不绑定时，子代理会继承主会话的模型**，协议里的 strong/execution 分档不会自动生效——而循环耗时主要取决于模型延迟，这是收益最大的一项配置。
+
+**推荐方式：让主 Agent 自己来。** 在 OpenCode 里运行 `/ai-go:models`：它会读取当前可用的模型列表，提出一组配比建议（默认「最强推理模型 + 同厂经济型执行模型 + 便宜的压缩模型」，如 GPT-5.5 + GPT-5.4-mini，或 Claude Opus 4.8 + Claude Sonnet 4.6），第一轮对话向你确认（可直接接受或改配比），确认后自动合并写入配置，重启 OpenCode 生效。
+
+**手动方式**：从模板 [`templates/opencode-model-binding.example.json`](templates/opencode-model-binding.example.json) 开始，合并进 `~/.config/opencode/opencode.json`（全局）或工作区根 `opencode.json`（项目级，优先级更高）。三个要点：
 
 - 把示例模型 ID 换成你实际可用的（`opencode models` 可列出）；
 - 保留每项的 `"mode": "subagent"`——否则 OpenCode 会把配置过的 agent 当成 primary，挤进 Tab 切换器；
