@@ -181,9 +181,13 @@ scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全
 
 **不绑定时，子代理会继承主会话的模型**，协议里的 strong/execution 分档不会自动生效——而循环耗时主要取决于模型延迟，这是收益最大的一项配置。
 
-**推荐方式：让主 Agent 自己来。** 在 OpenCode 里运行 `/ai-go:models`：它会读取当前可用的模型列表，提出一组配比建议（默认「最强推理模型 + 同厂经济型执行模型 + 便宜的压缩模型」，如 GPT-5.5 + GPT-5.4-mini，或 Claude Opus 4.8 + Claude Sonnet 4.6），第一轮对话向你确认（可直接接受或改配比），确认后自动合并写入配置，重启 OpenCode 生效。
+**推荐方式：让主 Agent 自己来。** 在 OpenCode 里运行 `/ai-go:models`，三种用法：
 
-**要更新配置时（新模型上线、想换配比），重跑一遍 `/ai-go:models` 即可**：它会展示当前绑定与新建议的对照（旧 → 新），确认后覆盖引擎角色的旧绑定（你手动加的其他配置不受影响）；`/ai-go:models --reset` 则清除引擎绑定，恢复"子代理继承主会话模型"的默认行为。
+- `/ai-go:models show` — **查看**：打印生效模型总表（主 Agent build、plan、13 个角色子代理、compaction），标注每个绑定的来源（哪个配置文件/继承自主模型）——这也是核对"某个子 Agent 执行时用什么模型"的权威方式；
+- `/ai-go:models` — **一键配置**：读取可用模型列表，给出整套配比建议（默认「最强推理 + 同厂经济型执行 + 便宜压缩」，如 GPT-5.5 + GPT-5.4-mini，或 Claude Opus 4.8 + Claude Sonnet 4.6），展示旧 → 新对照，一次确认后写入；
+- `/ai-go:models --interactive` — **逐项配置**：主模型、Plan 模型、强档（9 个角色）、执行档（4 个角色）、压缩模型五个决策逐个过，每项给出建议和备选，由你亲自挑选，最后还可对单个角色微调。
+
+要更新时（新模型上线、想换配比）重跑即可（确认后覆盖引擎旧绑定，你手动加的其他配置不受影响）；`--reset` 清除引擎绑定，恢复"子代理继承主会话模型"的默认行为。配置在进程启动时加载，重启 OpenCode 后（包括 resume 旧会话）即生效。
 
 **手动方式**：从模板 [`templates/opencode-model-binding.example.json`](templates/opencode-model-binding.example.json) 开始，合并进 `~/.config/opencode/opencode.json`（全局）或工作区根 `opencode.json`（项目级，优先级更高）。三个要点：
 
