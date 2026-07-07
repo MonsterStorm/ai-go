@@ -79,6 +79,36 @@ if [ -z "$TARGET" ]; then
   exit 2
 fi
 
+ensure_on_demand_gates() {
+  # Role agents and loop skills must be on-demand in this scope. At global
+  # scope this installer owns the gates and creates the config when missing;
+  # at project scope config creation belongs to init-knowledge-base.sh, so
+  # only hint there.
+  local config="$TARGET/opencode.json"
+  if [ ! -e "$config" ]; then
+    if [ "$TARGET" = "$GLOBAL_TARGET" ]; then
+      cat > "$config" <<'GATES_JSON'
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "task": { "ai-go-*": "ask" },
+    "skill": { "ai-go-*": "ask" }
+  }
+}
+GATES_JSON
+      echo "Created $config (on-demand gates for ai-go role agents and skills)"
+    else
+      echo "Hint: no $config yet. Run scripts/init-knowledge-base.sh for this"
+      echo "project, or create the config with the on-demand permission block:"
+      echo '  "permission": { "task": { "ai-go-*": "ask" }, "skill": { "ai-go-*": "ask" } }'
+    fi
+  elif ! grep -q '"task"' "$config"; then
+    echo "Hint: add the on-demand permission block to $config so role agents"
+    echo "and loop skills only run when you trigger or approve them:"
+    echo '  "permission": { "task": { "ai-go-*": "ask" }, "skill": { "ai-go-*": "ask" } }'
+  fi
+}
+
 if [ "$MODE" = "uninstall" ]; then
   removed=0
   for f in "$TARGET/commands/ai-go"/*.md; do
@@ -130,9 +160,12 @@ echo "Installed OpenCode skill: $TARGET/skills/ai-go-loop/SKILL.md"
 for f in "$SOURCE_AGENTS_DIR"/ai-go-*.md; do
   echo "Installed OpenCode agent: $TARGET/agents/$(basename "$f")"
 done
+ensure_on_demand_gates
+
 if [ "$TARGET" = "$GLOBAL_TARGET" ]; then
-  echo "Warning: global scope — the engine will load in every OpenCode session."
-  echo "Prefer --workspace <root>; remove a global install with --uninstall --global."
+  echo "Scope: global — loop/design/models and the role agents are available in"
+  echo "every project, but stay inert until you trigger them (ask-gates)."
+  echo "Remove with --uninstall --global."
 else
   echo "Scope: $TARGET — the engine loads only when OpenCode starts inside this workspace/project."
 fi

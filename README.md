@@ -168,10 +168,12 @@ scripts/init-knowledge-base.sh https://github.com/you/your-project
 **引擎默认只在你指定的项目里生效**：第 1 步的初始化已经把命令、技能、角色部署到目标项目的 `.opencode/`——只有在该项目里启动 OpenCode 才会加载，不会污染其他目录。需要更多作用域时用安装脚本（作用域必须显式指定）：
 
 ```bash
-scripts/install-opencode-engine.sh --workspace <root>       # 让某个项目/工作区生效（推荐）
-scripts/install-opencode-engine.sh --global                 # 显式选择全局：所有会话都会加载
+scripts/install-opencode-engine.sh --workspace <root>       # 让某个项目/工作区生效
+scripts/install-opencode-engine.sh --global                 # 全局：/ai-go:loop、/ai-go:design 等在任意项目可触发
 scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全局安装
 ```
+
+全局安装是安全的：引擎本身不含任何项目知识（知识库始终按项目加载），且安装器会在全局配置写入/提示按需门控（`ai-go-*` 的 `task`/`skill` 设为 `ask`）——命令和角色随处**可用**，但绝不**自动**参与任务，被动进入多 Agent/loop 模式前必先征得你同意。
 
 安装/卸载后重启 OpenCode。角色代理是 `mode: subagent`，不会出现在 Tab 主代理切换器里；在输入框输入 `@ai-go` 即可看到全部 13 个。
 
@@ -198,7 +200,7 @@ scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全
 | 开发一个功能 | `/ai-go:loop implement <目标>` |
 | 修一个 bug | `/ai-go:loop <问题描述>` 或 `--mode fix` |
 | 只分析不改代码 | `/ai-go:loop --readonly <问题>` |
-| 只要技术方案 | `/ai-go:loop --mode design <PRD 或目标>` |
+| 只要技术方案 | `/ai-go:design <PRD 或目标>` — 独立技能，任意项目可用（探索 → 大纲确认 → 完整方案）；要带任务记录的循环则用 `/ai-go:loop --mode design` |
 | 评审设计或 PR | `/ai-go:loop --mode review <对象>`，或直接 `@ai-go-tech-reviewer` |
 | 咨询单个专家 | `@` 任意角色（如 `@ai-go-backend-architect`、`@ai-go-security-engineer`） |
 | 恢复中断的循环 | `/ai-go:loop tasks/<task>`（状态都在任务记录里） |
