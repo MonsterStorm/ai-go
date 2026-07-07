@@ -1,78 +1,91 @@
 ---
-description: Discover available models, propose a strong/execution pairing for the role agents, and write the OpenCode bindings after user confirmation. Re-run anytime to update the bindings; --reset removes them.
+description: View and configure every model the engine uses - main and plan agents, role subagents, compaction. Show the effective-model table, get recommendations, confirm in one shot or item by item. Re-run anytime; --reset removes bindings.
 ---
 
-Set up — or update — model bindings for the engine's role agents. Unbound
-subagents inherit the invoking primary agent's model, so the protocol's
-strong/execution tiers (SSOT: the Roles table in `engine/loop-engineering.md`)
-do nothing until bound. This command lets the main agent do the binding:
-discover what is available, propose a sensible pairing, confirm with the user
-once, write the config. **Re-running it is the update path**: run it again
-after new models ship or when you want a different pairing, and the confirmed
-pairing replaces the previous bindings.
+Manage the models behind everything the engine touches: the primary agents
+(`build` — the main session — and `plan`), the thirteen role subagents (strong
+vs execution tiers; SSOT: the Roles table in `engine/loop-engineering.md`), and
+the hidden `compaction` agent. Unbound subagents inherit the invoking primary
+agent's model, so the tiers do nothing until bound. **Re-running this command
+is the update path**: the confirmed choices replace the engine's previous
+bindings.
 
-User input (optional: an explicit pairing like `<strong-model> + <execution-model>`,
-`--global` to target the global config instead of the workspace config, or
-`--reset` to remove the engine's bindings):
+User input (optional): `show` for a read-only inventory; an explicit pairing
+like `<strong-model> + <execution-model>`; `--interactive` to decide item by
+item; `--global` to target the global config; `--reset` to remove bindings.
 
 `$ARGUMENTS`
 
-Workflow:
+## `show` — the effective-model table (read-only, no writes)
 
-1. **Discover.** Run `opencode models` to list the models available in this
-   installation. If the command is unavailable or empty, ask the user to name
-   their providers or paste their model list.
-   Then read the target config (when it exists) and note the current bindings
-   for the engine's role agents — this is an update when they exist, a fresh
-   setup when they do not.
-2. **Classify and propose.** Pick one pairing using judgment:
-   - **Strong** (deep reasoning: architecture, review, investigation): the
-     most capable reasoning model available.
-   - **Execution** (fast, accurate implementation): an economical fast model,
-     preferably from the same provider family as the strong pick.
-   - **Compaction**: the cheapest capable summarizer available.
-   Typical shapes: a flagship reasoning model paired with its provider's
-   mini/fast tier (for example GPT-5.5 + GPT-5.4-mini, or Claude Opus 4.8 +
-   Claude Sonnet 4.6). Do not invent model IDs — propose only IDs that appear
-   in the discovered list, in `provider/model-id` form.
-3. **Confirm — exactly one question.** Show the proposed pairing (strong,
-   execution, compaction), the **current bindings when updating** (so the user
-   sees old -> new), and the write target; ask the user to accept or override.
-   Default target: `opencode.json` at the workspace root; with `--global`,
-   `~/.config/opencode/opencode.json`. When `$ARGUMENTS` already names the
-   pairing, skip the question and use it.
-4. **Write the bindings.** Merge into the target config — read it first when
-   it exists and preserve every unrelated key. On an update, the confirmed
-   pairing replaces the engine's previous role bindings (that is the point of
-   re-running); anything the user bound manually outside these roles is left
-   alone:
-   - Strong tier — each of these agents gets
-     `{ "mode": "subagent", "model": "<strong>" }`:
-     `ai-go-product-analyst`, `ai-go-system-architect`,
+1. Read the configs in precedence order: project `opencode.json` (or the
+   workspace root's), then `~/.config/opencode/opencode.json`, then agent
+   `.md` frontmatter.
+2. Resolve each agent's effective model per OpenCode's rules: an
+   agent-specific config `model` wins; otherwise a subagent inherits the model
+   of the primary agent that invokes it; primary agents fall back to the
+   top-level `"model"` key; `compaction` uses `agent.compaction.model`, else
+   the session model. Note in the output that a runtime TUI model selection
+   can override the main session's model.
+3. Print one table: agent | tier (primary / strong / execution / compaction) |
+   effective model | source (which file and key, or "inherits from main").
+   This table is also the authoritative way to know which model each subagent
+   will use during execution.
+
+## Configure (default)
+
+1. **Discover.** Run `opencode models` for the available models. If the
+   command is unavailable or empty, ask the user for their providers or list.
+2. **Show current state.** Print the `show` table first so every change reads
+   as old -> new.
+3. **Recommend.** Propose, using only IDs from the discovered list
+   (`provider/model-id` form — never invent one):
+   - **Main (`build`)**: the strongest reasoning model available.
+   - **Plan (`plan`)**: a strong reasoning model (often the same as main; a
+     cheaper strong model is fine — plan mode is read-only analysis).
+   - **Strong tier** (`ai-go-product-analyst`, `ai-go-system-architect`,
      `ai-go-backend-architect`, `ai-go-data-engineer`, `ai-go-ai-engineer`,
      `ai-go-security-engineer`, `ai-go-issue-fixer`, `ai-go-tech-reviewer`,
-     `ai-go-delivery-reviewer`.
-   - Execution tier — each of these agents gets
-     `{ "mode": "subagent", "model": "<execution>" }`:
-     `ai-go-frontend-expert`, `ai-go-mobile-expert`, `ai-go-devops-engineer`,
-     `ai-go-test-engineer`.
+     `ai-go-delivery-reviewer`): the most capable reasoning model.
+   - **Execution tier** (`ai-go-frontend-expert`, `ai-go-mobile-expert`,
+     `ai-go-devops-engineer`, `ai-go-test-engineer`): an economical fast
+     model, preferably the same provider family (for example GPT-5.5 +
+     GPT-5.4-mini, or Claude Opus 4.8 + Claude Sonnet 4.6).
+   - **Compaction**: the cheapest capable summarizer.
+4. **Confirm.**
+   - Default: one question covering the whole proposal — accept or override.
+   - `--interactive`: walk through the decisions one at a time — main, plan,
+     strong tier, execution tier, compaction — showing the recommendation
+     plus two or three sensible alternatives for each; the user picks each
+     one. Five decisions, not seventeen: the roles are grouped by tier, and
+     after the five picks offer optional per-role overrides for anyone who
+     wants finer control.
+   - When `$ARGUMENTS` already names the pairing explicitly, skip questions.
+5. **Write.** Merge into the target config (default: workspace root
+   `opencode.json`; with `--global`: `~/.config/opencode/opencode.json`) —
+   read it first, preserve every unrelated key; the confirmed choices replace
+   the engine's previous bindings, user-added entries outside these agents are
+   left alone:
+   - Each role subagent: `{ "mode": "subagent", "model": "<tier pick>" }` —
+     keep the explicit `"mode": "subagent"`, otherwise OpenCode treats
+     configured agents as primary and they clutter the Tab switcher.
+   - Primaries (only when the user chose them): `"agent": { "build":
+     { "model": "<main>" }, "plan": { "model": "<plan>" } }`.
    - `"agent": { "compaction": { "model": "<compaction>" } }` and top-level
      `"compaction": { "auto": true, "prune": true }`.
-   - Keep the explicit `"mode": "subagent"` lines: without them OpenCode
-     treats configured agents as primary and they clutter the Tab switcher.
-   - Offer (do not force) setting the top-level `"model"` to the strong pick
-     as the default main-session model.
-5. **Validate and report.** Check the file parses as JSON (for example
-   `python3 -m json.tool`), show the resulting `agent` block (old -> new when
-   updating), and remind the user to restart OpenCode — bindings apply to new
-   sessions only.
+6. **Validate and report.** Check the file parses as JSON (for example
+   `python3 -m json.tool`), print the final effective-model table (old ->
+   new), and remind the user to restart OpenCode — config loads at process
+   startup, so the bindings apply to every new process, including resumed
+   sessions.
 
-`--reset`: instead of proposing a pairing, remove the engine role agents'
-entries (and the compaction binding this command added) from the target
-config after one confirmation, restoring inherit-from-main behavior. Unrelated
-keys stay untouched.
+## `--reset`
+
+Remove the engine role agents' entries (and the compaction/primary bindings
+this command added) from the target config after one confirmation, restoring
+inherit-from-main behavior. Unrelated keys stay untouched.
 
 Hard limits: this command edits OpenCode config files only — never code, never
-engine files. Never write without the user's confirmation of the pairing
-(except when `$ARGUMENTS` supplied it explicitly). Never propose a model ID
-that was not discovered or user-provided.
+engine files. `show` never writes. Never write without the user's confirmation
+(except when `$ARGUMENTS` supplied the choices explicitly). Never propose a
+model ID that was not discovered or user-provided.

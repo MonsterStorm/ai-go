@@ -54,6 +54,15 @@ Durable project knowledge is indexed in `knowledge/index.md`: architecture
 docs, conventions, and past pitfalls. Read it before designing; update it when
 a task reveals durable learnings (the engine's Ratchet step).
 
+## On-Demand Role Agents And Loop Mode
+
+This knowledge entry point applies to every task automatically. The `ai-go-*`
+role subagents and loop mode do not: never delegate to an `ai-go-*` subagent or
+start loop-style delivery on your own initiative. Use them only when the user
+explicitly triggers them — `/ai-go:loop`, an `@ai-go-...` mention, or an
+explicit loop request. Inside a loop the user started, the loop protocol's role
+rules apply as written.
+
 ## Conventions
 
 TODO: branch naming, commit style, code style, review expectations — anything

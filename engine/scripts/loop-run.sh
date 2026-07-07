@@ -165,7 +165,10 @@ ai-go-delivery-reviewer per the protocol's Review phase instead of implementing.
 Set Status to BLOCKED (with Blocked-Reason) when you need a human decision or hit
 a hard gate. Do exactly one iteration, then stop."
 
-  RUN_ARGS=(run --quiet)
+  # --auto keeps unattended runs unattended: permissions that would ask are
+  # auto-approved (workspaces gate role agents/skills behind "ask" for
+  # interactive on-demand use); explicit "deny" rules stay enforced.
+  RUN_ARGS=(run --quiet --auto)
   [ -n "$OPENCODE_AGENT" ] && RUN_ARGS+=(--agent "$OPENCODE_AGENT")
 
   ITER_LOG="$LOG_DIR/iter-$(date -u +%Y%m%dT%H%M%SZ)-$i.log"

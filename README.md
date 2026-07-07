@@ -155,6 +155,8 @@ scripts/init-knowledge-base.sh https://github.com/you/your-project
 | `.opencode/` | 引擎的命令、技能、13 个角色代理（项目级加载；`--no-opencode` 跳过） |
 | `.gitignore` | 追加 `tasks/**/loop/logs/`（harness 运行日志不入库） |
 
+初始化后的加载语义是**分层**的：**知识库自动加载**（`.opencode/opencode.json` 的 `instructions` 让 `AGENTS.md` 进入该项目的每个会话）；**命令按需**（敲 `/ai-go:loop` 才执行）；**角色代理与 loop 技能按需**——配置把 `ai-go-*` 的 `task`/`skill` 权限设为 `ask`，AI 不能自作主张把活派给角色或进入循环模式，除非你亲自触发（`@ai-go-...` 提及、`/ai-go:loop`）或批准；无人值守 harness 以 `--auto` 运行，这些交互门不会卡住它。
+
 然后补全 `AGENTS.md` 与 `knowledge/index.md` 里的 TODO（尤其是验证命令和红线）。可以手工填，也可以让引擎自己探索补全——在项目里启动 OpenCode 后运行：
 
 ```text
@@ -166,10 +168,12 @@ scripts/init-knowledge-base.sh https://github.com/you/your-project
 **引擎默认只在你指定的项目里生效**：第 1 步的初始化已经把命令、技能、角色部署到目标项目的 `.opencode/`——只有在该项目里启动 OpenCode 才会加载，不会污染其他目录。需要更多作用域时用安装脚本（作用域必须显式指定）：
 
 ```bash
-scripts/install-opencode-engine.sh --workspace <root>       # 让某个项目/工作区生效（推荐）
-scripts/install-opencode-engine.sh --global                 # 显式选择全局：所有会话都会加载
+scripts/install-opencode-engine.sh --workspace <root>       # 让某个项目/工作区生效
+scripts/install-opencode-engine.sh --global                 # 全局：/ai-go:loop、/ai-go:design 等在任意项目可触发
 scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全局安装
 ```
+
+全局安装是安全的：引擎本身不含任何项目知识（知识库始终按项目加载），且安装器会在全局配置写入/提示按需门控（`ai-go-*` 的 `task`/`skill` 设为 `ask`）——命令和角色随处**可用**，但绝不**自动**参与任务，被动进入多 Agent/loop 模式前必先征得你同意。
 
 安装/卸载后重启 OpenCode。角色代理是 `mode: subagent`，不会出现在 Tab 主代理切换器里；在输入框输入 `@ai-go` 即可看到全部 13 个。
 
@@ -177,9 +181,13 @@ scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全
 
 **不绑定时，子代理会继承主会话的模型**，协议里的 strong/execution 分档不会自动生效——而循环耗时主要取决于模型延迟，这是收益最大的一项配置。
 
-**推荐方式：让主 Agent 自己来。** 在 OpenCode 里运行 `/ai-go:models`：它会读取当前可用的模型列表，提出一组配比建议（默认「最强推理模型 + 同厂经济型执行模型 + 便宜的压缩模型」，如 GPT-5.5 + GPT-5.4-mini，或 Claude Opus 4.8 + Claude Sonnet 4.6），第一轮对话向你确认（可直接接受或改配比），确认后自动合并写入配置，重启 OpenCode 生效。
+**推荐方式：让主 Agent 自己来。** 在 OpenCode 里运行 `/ai-go:models`，三种用法：
 
-**要更新配置时（新模型上线、想换配比），重跑一遍 `/ai-go:models` 即可**：它会展示当前绑定与新建议的对照（旧 → 新），确认后覆盖引擎角色的旧绑定（你手动加的其他配置不受影响）；`/ai-go:models --reset` 则清除引擎绑定，恢复"子代理继承主会话模型"的默认行为。
+- `/ai-go:models show` — **查看**：打印生效模型总表（主 Agent build、plan、13 个角色子代理、compaction），标注每个绑定的来源（哪个配置文件/继承自主模型）——这也是核对"某个子 Agent 执行时用什么模型"的权威方式；
+- `/ai-go:models` — **一键配置**：读取可用模型列表，给出整套配比建议（默认「最强推理 + 同厂经济型执行 + 便宜压缩」，如 GPT-5.5 + GPT-5.4-mini，或 Claude Opus 4.8 + Claude Sonnet 4.6），展示旧 → 新对照，一次确认后写入；
+- `/ai-go:models --interactive` — **逐项配置**：主模型、Plan 模型、强档（9 个角色）、执行档（4 个角色）、压缩模型五个决策逐个过，每项给出建议和备选，由你亲自挑选，最后还可对单个角色微调。
+
+要更新时（新模型上线、想换配比）重跑即可（确认后覆盖引擎旧绑定，你手动加的其他配置不受影响）；`--reset` 清除引擎绑定，恢复"子代理继承主会话模型"的默认行为。配置在进程启动时加载，重启 OpenCode 后（包括 resume 旧会话）即生效。
 
 **手动方式**：从模板 [`templates/opencode-model-binding.example.json`](templates/opencode-model-binding.example.json) 开始，合并进 `~/.config/opencode/opencode.json`（全局）或工作区根 `opencode.json`（项目级，优先级更高）。三个要点：
 
@@ -196,7 +204,7 @@ scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全
 | 开发一个功能 | `/ai-go:loop implement <目标>` |
 | 修一个 bug | `/ai-go:loop <问题描述>` 或 `--mode fix` |
 | 只分析不改代码 | `/ai-go:loop --readonly <问题>` |
-| 只要技术方案 | `/ai-go:loop --mode design <PRD 或目标>` |
+| 只要技术方案 | `/ai-go:design <PRD 或目标>` — 独立技能，任意项目可用（探索 → 大纲确认 → 完整方案）；要带任务记录的循环则用 `/ai-go:loop --mode design` |
 | 评审设计或 PR | `/ai-go:loop --mode review <对象>`，或直接 `@ai-go-tech-reviewer` |
 | 咨询单个专家 | `@` 任意角色（如 `@ai-go-backend-architect`、`@ai-go-security-engineer`） |
 | 恢复中断的循环 | `/ai-go:loop tasks/<task>`（状态都在任务记录里） |
