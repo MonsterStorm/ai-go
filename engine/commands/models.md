@@ -54,12 +54,16 @@ item; `--global` to target the global config; `--reset` to remove bindings.
    - **Compaction**: the cheapest capable summarizer.
 4. **Confirm.**
    - Default: one question covering the whole proposal — accept or override.
-   - `--interactive`: walk through the decisions one at a time — main, plan,
-     strong tier, execution tier, compaction — showing the recommendation
-     plus two or three sensible alternatives for each; the user picks each
-     one. Five decisions, not eighteen: the roles are grouped by tier, and
-     after the five picks offer optional per-role overrides for anyone who
-     wants finer control.
+   - `--interactive`: present **one consolidated questionnaire in a single
+     message** — never a serial question-per-item dialog. Number the five
+     decisions (1 main, 2 plan, 3 strong tier, 4 execution tier,
+     5 compaction); for each, mark the recommended pick as the default and
+     list two or three sensible alternatives as lettered options (a/b/c).
+     The user answers once — "all defaults", or overrides by item ("2b, 5a"
+     or model names), and may name per-role overrides in the same reply
+     (for example "ai-go-test-engineer -> <model>"). Ask a follow-up only
+     when an answer is genuinely ambiguous. Five decisions, not eighteen:
+     the roles stay grouped by tier.
    - When `$ARGUMENTS` already names the pairing explicitly, skip questions.
 5. **Write.** Merge into the target config (default: workspace root
    `opencode.json`; with `--global`: `~/.config/opencode/opencode.json`) —
