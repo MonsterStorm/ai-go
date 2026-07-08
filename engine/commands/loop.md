@@ -29,12 +29,17 @@ Workflow:
      it: read spec.md, plan.md, and loop/state.md, then continue from Next
      Action.
    - Otherwise treat `$ARGUMENTS` as a new goal: create the task directory with
-     spec.md (verifiable acceptance criteria, primary role), plan.md (slices —
-     light-scale loops may keep the checklist inside spec.md instead), and
-     loop/state.md (Status: RUNNING, Iteration: 0, plus the Router section:
-     mode, scale, write scope, goal, stop conditions, roles).
+     spec.md (verifiable acceptance criteria, the open-items ledger, primary
+     role), plan.md (slices — light-scale loops may keep the checklist inside
+     spec.md instead), and loop/state.md (Status: RUNNING, Iteration: 0, plus
+     the Router section: mode, scale, write scope, goal, stop conditions,
+     roles).
    - If `$ARGUMENTS` is empty, infer the goal from the current conversation and
      confirm it with the user before starting.
+   - **Alignment gate before decomposition**: classify unresolved questions as
+     P0/P1/P2 per the protocol's Align phase, resolve P0/P1 with the user
+     (batched into one message), record P2 defaults as explicit assumptions in
+     spec.md, and only then decompose into the execution plan.
 4. Follow the protocol's Default Strategy, adapted to the routed mode and
    scale: read-only modes (analyze, review) never create branches or modify
    code; write modes (dev, fix, test) create a task branch or worktree in
