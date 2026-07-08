@@ -119,7 +119,7 @@ Agent 会忘，仓库不忘。每个任务是一条任务记录（spec / plan / 
 | 板块 | 位置 | 说明 |
 | --- | --- | --- |
 | **循环协议（SSOT）** | `engine/loop-engineering.md` | 路由、六种模式（design/dev/fix/analyze/review/test）、多仓库规则、状态格式、迭代契约、停止条件、风险控制、Ratchet |
-| **14 个专业角色** | `engine/agents/` | 架构师出方案（系统架构、后端架构、数据、AI、安全），专家精准执行（**后端专家**、前端、移动端、DevOps、测试），加上产品分析、问题修复与两个评审角色（**交付评审是唯一可置 DONE 的角色**） |
+| **14 个专业角色** | `engine/agents/` | 命名即分层：`*-architect` 出方案（系统、后端、数据、AI、安全五位架构师，strong 档），`*-engineer` 精准执行（后端、前端、移动端、DevOps、测试五位工程师，execution 档），外加流程角色（产品分析、问题修复、技术评审、**交付评审——唯一可置 DONE**） |
 | **单一入口** | `engine/commands/loop.md` | `/ai-go:loop <目标>`，内部路由，用户无需预判任务类型 |
 | **会话技能** | `engine/skills/ai-go-loop/` | "loop this task"、"自动迭代交付" 等短语直接触发 |
 | **无人值守 harness** | `engine/scripts/loop-run.sh` | 每迭代一个全新会话，退出码语义化，自带各种刹车 |
@@ -206,7 +206,7 @@ scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全
 | 只分析不改代码 | `/ai-go:loop --readonly <问题>` |
 | 只要技术方案 | `/ai-go:design <PRD 或目标>` — 独立技能，任意项目可用（探索 → 大纲确认 → 完整方案）；要带任务记录的循环则用 `/ai-go:loop --mode design` |
 | 评审设计或 PR | `/ai-go:loop --mode review <对象>`，或直接 `@ai-go-tech-reviewer` |
-| 咨询单个专家 | `@` 任意角色（如 `@ai-go-backend-architect`、`@ai-go-security-engineer`） |
+| 咨询单个专家 | `@` 任意角色（如 `@ai-go-backend-architect`、`@ai-go-security-architect`） |
 | 恢复中断的循环 | `/ai-go:loop tasks/<task>`（状态都在任务记录里） |
 
 循环在以下节点必定暂停等人确认：路由歧义/高风险、大爆炸半径的设计、数据库或外部写操作、PR/发布/部署。

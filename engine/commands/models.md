@@ -44,11 +44,11 @@ item; `--global` to target the global config; `--reset` to remove bindings.
    - **Plan (`plan`)**: a strong reasoning model (often the same as main; a
      cheaper strong model is fine — plan mode is read-only analysis).
    - **Strong tier** (`ai-go-product-analyst`, `ai-go-system-architect`,
-     `ai-go-backend-architect`, `ai-go-data-engineer`, `ai-go-ai-engineer`,
-     `ai-go-security-engineer`, `ai-go-issue-fixer`, `ai-go-tech-reviewer`,
+     `ai-go-backend-architect`, `ai-go-data-architect`, `ai-go-ai-architect`,
+     `ai-go-security-architect`, `ai-go-issue-fixer`, `ai-go-tech-reviewer`,
      `ai-go-delivery-reviewer`): the most capable reasoning model.
-   - **Execution tier** (`ai-go-backend-expert`, `ai-go-frontend-expert`,
-     `ai-go-mobile-expert`, `ai-go-devops-engineer`, `ai-go-test-engineer`):
+   - **Execution tier** (`ai-go-backend-engineer`, `ai-go-frontend-engineer`,
+     `ai-go-mobile-engineer`, `ai-go-devops-engineer`, `ai-go-test-engineer`):
      an economical fast model, preferably the same provider family (for
      example GPT-5.5 + GPT-5.4-mini, or Claude Opus 4.8 + Claude Sonnet 4.6).
    - **Compaction**: the cheapest capable summarizer.

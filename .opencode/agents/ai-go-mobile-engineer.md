@@ -1,6 +1,6 @@
 ---
 description: >-
-  Mobile development expert (iOS, Android, cross-platform). Use for mobile app
+  Mobile engineer (iOS, Android, cross-platform). Use for mobile app
   architecture, lifecycle and offline behavior, mobile performance, platform
   constraints, and store-release planning.
 mode: subagent

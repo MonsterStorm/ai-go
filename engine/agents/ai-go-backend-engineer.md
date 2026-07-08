@@ -1,6 +1,6 @@
 ---
 description: >-
-  Backend implementation expert. Use to implement well-specified backend
+  Backend engineer. Use to implement well-specified backend
   slices — services, APIs, data access, scripts — against an approved design
   during loop-engineering tasks. Design decisions belong to
   ai-go-backend-architect; this role builds them precisely.
