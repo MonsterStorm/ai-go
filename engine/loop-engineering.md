@@ -352,6 +352,7 @@ is the SSOT for its own standards.
 | `ai-go-product-analyst` | PRD analysis, product-first scope decisions, acceptance criteria | strong |
 | `ai-go-system-architect` | Cross-service architecture: boundaries, integration patterns, technology selection, capacity/failure design, evolution | strong |
 | `ai-go-backend-architect` | Service-level domain modeling, API and data design, performance, safety, stability, migrations, backend implementation guidance | strong |
+| `ai-go-backend-expert` | Precise backend implementation of well-specified slices — services, APIs, data access, scripts — against an approved design | execution |
 | `ai-go-frontend-expert` | Interface design and UI implementation: framework, structure, interaction, visual, motion, experience | execution |
 | `ai-go-mobile-expert` | Mobile apps (iOS/Android/cross-platform): architecture, lifecycle/offline, mobile performance, store releases | execution |
 | `ai-go-data-engineer` | Schema at scale, high-risk migrations/backfills, data pipelines, storage selection, metrics correctness | strong |
@@ -417,6 +418,40 @@ where it buys something reading cannot:
   before delivery review), not per slice. Delivery review runs once at the
   end; after NEEDS_WORK fixes it re-verifies the failed criteria and anything
   the fixes touched, not the entire matrix from scratch.
+
+### Delegated implementation
+
+The division of labor is architects design, experts execute: strong-tier
+roles (and the executor session) own designs, plans, and reviews; the
+execution-tier makers own the token-heavy implementation work. For standard
+loops with well-specified slices, the executor should delegate implementation
+slices to the owning execution-tier maker instead of implementing everything
+in-session — this keeps the bulk of implementation tokens on execution-tier
+models while judgment stays on strong ones:
+
+| Slice domain | Delegate to |
+| --- | --- |
+| Backend services, APIs, data access, scripts | `ai-go-backend-expert` |
+| Web UI | `ai-go-frontend-expert` |
+| Mobile | `ai-go-mobile-expert` |
+| Test authoring and execution | `ai-go-test-engineer` |
+| Infrastructure, CI/CD, deployment config | `ai-go-devops-engineer` |
+
+Rules:
+
+- **Delegate at slice or batch granularity** with a scoped brief (the slice's
+  acceptance, the relevant design section, files to touch, constraints, and
+  the verification commands); per-action delegation wastes more on session
+  spawns than it saves.
+- **The maker implements, verifies, and commits** per the Iteration Contract
+  and reports evidence; the executor keeps state.md, cross-slice coherence,
+  and plan upkeep.
+- **Escalation, not improvisation**: makers stop and report when the design
+  is ambiguous or wrong; design changes go through the design owner.
+- **Fallback brake**: two consecutive failed or NEEDS_WORK delegated slices
+  from the same maker means the executor takes the work back in-session.
+- **Light loops implement in-session** — delegation overhead outweighs the
+  savings on small tasks.
 
 Release is intentionally not a role: loops prepare releases (changelogs, tag
 proposals, prerequisites) but release execution always goes through the release

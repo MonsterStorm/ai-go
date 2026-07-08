@@ -3,7 +3,7 @@ description: View and configure every model the engine uses - main and plan agen
 ---
 
 Manage the models behind everything the engine touches: the primary agents
-(`build` — the main session — and `plan`), the thirteen role subagents (strong
+(`build` — the main session — and `plan`), the fourteen role subagents (strong
 vs execution tiers; SSOT: the Roles table in `engine/loop-engineering.md`), and
 the hidden `compaction` agent. Unbound subagents inherit the invoking primary
 agent's model, so the tiers do nothing until bound. **Re-running this command
@@ -47,17 +47,17 @@ item; `--global` to target the global config; `--reset` to remove bindings.
      `ai-go-backend-architect`, `ai-go-data-engineer`, `ai-go-ai-engineer`,
      `ai-go-security-engineer`, `ai-go-issue-fixer`, `ai-go-tech-reviewer`,
      `ai-go-delivery-reviewer`): the most capable reasoning model.
-   - **Execution tier** (`ai-go-frontend-expert`, `ai-go-mobile-expert`,
-     `ai-go-devops-engineer`, `ai-go-test-engineer`): an economical fast
-     model, preferably the same provider family (for example GPT-5.5 +
-     GPT-5.4-mini, or Claude Opus 4.8 + Claude Sonnet 4.6).
+   - **Execution tier** (`ai-go-backend-expert`, `ai-go-frontend-expert`,
+     `ai-go-mobile-expert`, `ai-go-devops-engineer`, `ai-go-test-engineer`):
+     an economical fast model, preferably the same provider family (for
+     example GPT-5.5 + GPT-5.4-mini, or Claude Opus 4.8 + Claude Sonnet 4.6).
    - **Compaction**: the cheapest capable summarizer.
 4. **Confirm.**
    - Default: one question covering the whole proposal — accept or override.
    - `--interactive`: walk through the decisions one at a time — main, plan,
      strong tier, execution tier, compaction — showing the recommendation
      plus two or three sensible alternatives for each; the user picks each
-     one. Five decisions, not seventeen: the roles are grouped by tier, and
+     one. Five decisions, not eighteen: the roles are grouped by tier, and
      after the five picks offer optional per-role overrides for anyone who
      wants finer control.
    - When `$ARGUMENTS` already names the pairing explicitly, skip questions.

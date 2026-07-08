@@ -11,6 +11,7 @@
     "ai-go-tech-reviewer": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
     "ai-go-delivery-reviewer": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
 
+    "ai-go-backend-expert": { "mode": "subagent", "model": "anthropic/claude-sonnet-4-6" },
     "ai-go-frontend-expert": { "mode": "subagent", "model": "anthropic/claude-sonnet-4-6" },
     "ai-go-mobile-expert": { "mode": "subagent", "model": "anthropic/claude-sonnet-4-6" },
     "ai-go-devops-engineer": { "mode": "subagent", "model": "anthropic/claude-sonnet-4-6" },

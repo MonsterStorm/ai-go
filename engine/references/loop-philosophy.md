@@ -57,7 +57,7 @@ OpenCode:
 | Worktrees | parallel isolation | write modes create a task branch or in-project worktree in every touched repository, per each repository's convention; read-only modes create no branch |
 | Skills | encoded project knowledge, the Ratchet's carrier | `ai-go-loop` skill + the workspace knowledge entry point (`AGENTS.md`, routers, handbooks) |
 | Connectors | reach real tools | bash-first (prefer shell commands documented with usage examples in the knowledge entry point over MCP); MCP connectors are a later extension |
-| Sub-agents | maker/checker separation | thirteen role subagents in `engine/agents/` |
+| Sub-agents | maker/checker separation | fourteen role subagents in `engine/agents/` |
 | State | durable memory | loop task state files |
 
 ## Operator Risks
