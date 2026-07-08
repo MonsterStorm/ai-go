@@ -24,6 +24,24 @@ Full philosophy, the six-primitives mapping, operator risks, and the open-source
 prior art this engine borrows from: `references/loop-philosophy.md` (background
 reading — not required per iteration).
 
+## Knowledge Precedence
+
+Every role works from two knowledge layers:
+
+1. **Expert knowledge** — the domain professionalism built into the model and
+   sharpened by each role file: generic, portable, true in any project.
+2. **The workspace knowledge base** — the knowledge entry point (`AGENTS.md`)
+   and everything it routes to: project-specific facts, conventions, standards,
+   and pitfalls. It **corrects and supplements** expert knowledge and always
+   wins on conflict.
+
+When the workspace has no knowledge base — or a thin one — roles do not stall:
+they fall back to expert judgment explicitly framed by the business scenario,
+the system context, and the technical problem at hand, and state the resulting
+assumptions in the task record instead of guessing silently. Agent behavior
+norms enter through the knowledge entry point and are set by the operator (see
+The Operator's Role).
+
 ## Single Entry And The Loop Router
 
 The user-facing entry is one stable command: `/ai-go:loop <goal>`. Users
@@ -149,7 +167,8 @@ Every loop is a task record with a `loop/` subdirectory:
 
 ```text
 tasks/<project-or-cross-project>/<task>/
-├── spec.md         # mission, acceptance criteria, constraints, primary role
+├── spec.md         # mission, acceptance criteria, open-items ledger (P0/P1/P2),
+│                   # constraints, primary role
 ├── plan.md         # slice checklist: small, independently verifiable slices
 └── loop/
     ├── state.md    # machine-readable loop state (format below)
@@ -222,10 +241,24 @@ executor may skip, merge, or reorder based on task size and mode. What is never
 skippable: verifiable stop conditions, verification evidence, and independent
 review before DONE.
 
-1. **Intake** — Router judgment (above). Route via the workspace's knowledge
-   entry point and read the touched projects' SSOT docs. Derive verifiable
-   acceptance criteria into spec.md; only ask the human when acceptance is
-   genuinely ambiguous and high-risk.
+1. **Align** — Router judgment (above), then goal alignment with the user.
+   Route via the workspace's knowledge entry point and read the touched
+   projects' SSOT docs. Work the goal and **verifiable acceptance criteria**
+   out with the user in spec.md, and classify every unresolved question into
+   the spec's open-items ledger:
+   - **P0** — a wrong answer changes the outcome (goal, scope, acceptance):
+     resolve with the user before anything else.
+   - **P1** — a wrong answer invalidates a slice (design constraint, contract
+     choice, data semantics): resolve with the user before the affected work
+     is planned.
+   - **P2** — a sensible default exists: record the chosen default as an
+     explicit assumption in spec.md; the user sees it at the gate and can
+     override.
+   **Alignment gate: decomposition and execution do not start while the
+   ledger holds unresolved items** — P0/P1 need the user's answer, P2 closes
+   by recording its default. Light loops with clear acceptance typically pass
+   the gate immediately; batch the questions into one message rather than
+   asking serially.
 2. **Research** — Explore before designing: code, domain docs, prior task
    records, data where relevant. Record load-bearing findings in spec.md.
    Designs must be grounded in what exists ("add a consumer group on the
@@ -464,6 +497,22 @@ Release is intentionally not a role: loops prepare releases (changelogs, tag
 proposals, prerequisites) but release execution always goes through the release
 handbooks with human confirmation.
 
+## The Operator's Role
+
+The loop automates execution, not intent. Three things only the human operator
+provides — the loop treats them as given and never invents them:
+
+| The operator sets | Where it lives |
+| --- | --- |
+| Business and technical goals | the task's spec.md: mission, acceptance criteria, priorities |
+| Technical standards | the workspace knowledge base: design rules, verification standards, quality bars |
+| Agent behavior norms | the knowledge entry point's rules and gates, plus this protocol |
+
+Standing operator duties: answer P0/P1 open items at the alignment gate,
+confirm large-blast-radius designs, review loop diffs before merging, confirm
+PR/release/deploy actions, and prune Ratchet rules that stop earning their
+place.
+
 ## Ratchet: Knowledge Capture
 
 The loop gets smarter only if failures become rules. When a loop reveals a
@@ -471,6 +520,19 @@ mistake, a pitfall, or a repeated checker finding, encode it at the narrowest
 place the next agent will read, via the workspace's knowledge-capture flow;
 checker-standard findings belong in the reviewer/test role files or the
 workspace's review criteria.
+
+After every completed loop, deliberately sweep for three kinds of durable
+learnings — do not wait for them to surface on their own:
+
+- **Technical standards** — quality bars or design rules future work should
+  hold to;
+- **Behavior norms** — rules about how agents should act (when to ask, pause,
+  verify, escalate) that would have prevented friction this loop;
+- **Pitfalls** — concrete failures likely to recur.
+
+Project-specific learnings go to the workspace knowledge base. Generic ones
+belong to the loop system itself — role files, review criteria, this protocol
+— so the engine improves continuously, not only the project.
 
 A lesson enters the Ratchet only if all of these hold:
 

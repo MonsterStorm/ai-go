@@ -31,6 +31,8 @@ criteria, keeping all continuity in task files instead of the context window.
    never modify code; ambiguous or high-risk intents pause for the user.
 2. Resolve the loop task directory (resume) or create it via the Default
    Strategy (new goal), under `tasks/<project-or-cross-project>/<task>/`.
+   Pass the alignment gate before decomposing: acceptance criteria worked out
+   with the user, P0/P1 open items resolved, P2 defaults recorded in spec.md.
 3. Iterate per the Iteration Contract: get bearings and smoke-verify once per
    session, one verifiable slice at a time (small consecutive slices may run
    as one bounded batch), evidence before claims, append-only state.md updated
