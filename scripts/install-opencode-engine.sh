@@ -147,6 +147,12 @@ fi
 
 mkdir -p "$TARGET/commands/ai-go" "$TARGET/skills/ai-go-loop" "$TARGET/agents"
 
+# Refresh, don't accumulate: agents or commands renamed/removed upstream must
+# disappear from the install too. Everything under commands/ai-go and every
+# ai-go-* agent is managed by this installer, so wiping before copying is safe.
+rm -f "$TARGET/commands/ai-go"/*.md
+rm -f "$TARGET"/agents/ai-go-*.md
+
 for cmd in "$SOURCE_COMMANDS_DIR"/*.md; do
   cp "$cmd" "$TARGET/commands/ai-go/$(basename "$cmd")"
 done

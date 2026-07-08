@@ -32,7 +32,7 @@ ai-go 是一个跑在 [OpenCode](https://opencode.ai) 上的 **loop-engineering 
       → 把这次踩的坑沉淀成规则（Ratchet）
 ```
 
-它**不是又一个 Agent 框架**。没有 SDK、没有 DSL、没有要学的编排图——它是一份**协议**（Markdown 写成的循环契约）+ **13 个专业角色**（maker/checker 严格分离）+ **一个 harness 脚本**（无人值守驱动器）。全部实现可读、可审计、可魔改。
+它**不是又一个 Agent 框架**。没有 SDK、没有 DSL、没有要学的编排图——它是一份**协议**（Markdown 写成的循环契约）+ **14 个专业角色**（maker/checker 严格分离）+ **一个 harness 脚本**（无人值守驱动器）。全部实现可读、可审计、可魔改。
 
 ## 为什么做
 
@@ -96,14 +96,14 @@ Agent 会忘，仓库不忘。每个任务是一条任务记录（spec / plan / 
 | **编排框架**（LangGraph / CrewAI / AutoGen） | 用代码把工作流写死成图，先学 SDK 再干活 | 零框架代码；协议只定义目标、停止条件与评审机制，路径由模型自选 |
 | **"全自动" Agent**（AutoGPT 一脉） | 自主性强但无验证纪律，跑飞了没人拦 | 证据先于结论 + 三连败熔断 + 停滞刹车 + 硬性风控门 |
 | **Agent 产品**（Devin 类） | 黑盒 SaaS，无法审计，难按团队规矩定制 | 全部 Markdown + Bash，MIT；把规矩写进知识入口，引擎当场遵守 |
-| **无人值守循环脚本**（Ralph loop 及变体） | 静态 PROMPT.md + while true，无角色无风控 | 结构化状态契约 + 13 角色 + 退出码语义（DONE/BLOCKED/超限/停滞） |
+| **无人值守循环脚本**（Ralph loop 及变体） | 静态 PROMPT.md + while true，无角色无风控 | 结构化状态契约 + 14 角色 + 退出码语义（DONE/BLOCKED/超限/停滞） |
 
 ## 核心板块
 
 ```text
 ┌─────────────────────────────────────────────────┐
 │  engine/  （引擎：可移植，项目无关）                │
-│  循环协议 · 13 个角色子代理 · loop 命令/技能 ·      │
+│  循环协议 · 14 个角色子代理 · loop 命令/技能 ·      │
 │  无人值守 harness                                 │
 └──────────────────────┬──────────────────────────┘
                        │ 运行时通过知识入口加载
@@ -119,7 +119,7 @@ Agent 会忘，仓库不忘。每个任务是一条任务记录（spec / plan / 
 | 板块 | 位置 | 说明 |
 | --- | --- | --- |
 | **循环协议（SSOT）** | `engine/loop-engineering.md` | 路由、六种模式（design/dev/fix/analyze/review/test）、多仓库规则、状态格式、迭代契约、停止条件、风险控制、Ratchet |
-| **13 个专业角色** | `engine/agents/` | 产品分析 · 系统架构 · 后端架构 · 前端 · 移动端 · 数据 · AI · DevOps · 安全 · 测试 · 问题修复 · 技术评审 · **交付评审（唯一可置 DONE）** |
+| **14 个专业角色** | `engine/agents/` | 命名即分层：`*-architect` 出方案（系统、后端、数据、AI、安全五位架构师，strong 档），`*-engineer` 精准执行（后端、前端、移动端、DevOps、测试五位工程师，execution 档），外加流程角色（产品分析、问题修复、技术评审、**交付评审——唯一可置 DONE**） |
 | **单一入口** | `engine/commands/loop.md` | `/ai-go:loop <目标>`，内部路由，用户无需预判任务类型 |
 | **会话技能** | `engine/skills/ai-go-loop/` | "loop this task"、"自动迭代交付" 等短语直接触发 |
 | **无人值守 harness** | `engine/scripts/loop-run.sh` | 每迭代一个全新会话，退出码语义化，自带各种刹车 |
@@ -152,7 +152,7 @@ scripts/init-knowledge-base.sh https://github.com/you/your-project
 | `AGENTS.md` | 知识入口：项目概览、**验证命令**、**硬性红线**、任务记录约定 |
 | `knowledge/index.md` | 轻量知识索引：架构、约定、踩坑记录（Ratchet 沉淀地） |
 | `tasks/README.md` | 循环任务记录格式说明 |
-| `.opencode/` | 引擎的命令、技能、13 个角色代理（项目级加载；`--no-opencode` 跳过） |
+| `.opencode/` | 引擎的命令、技能、14 个角色代理（项目级加载；`--no-opencode` 跳过） |
 | `.gitignore` | 追加 `tasks/**/loop/logs/`（harness 运行日志不入库） |
 
 初始化后的加载语义是**分层**的：**知识库自动加载**（`.opencode/opencode.json` 的 `instructions` 让 `AGENTS.md` 进入该项目的每个会话）；**命令按需**（敲 `/ai-go:loop` 才执行）；**角色代理与 loop 技能按需**——配置把 `ai-go-*` 的 `task`/`skill` 权限设为 `ask`，AI 不能自作主张把活派给角色或进入循环模式，除非你亲自触发（`@ai-go-...` 提及、`/ai-go:loop`）或批准；无人值守 harness 以 `--auto` 运行，这些交互门不会卡住它。
@@ -175,7 +175,7 @@ scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全
 
 全局安装是安全的：引擎本身不含任何项目知识（知识库始终按项目加载），且安装器会在全局配置写入/提示按需门控（`ai-go-*` 的 `task`/`skill` 设为 `ask`）——命令和角色随处**可用**，但绝不**自动**参与任务，被动进入多 Agent/loop 模式前必先征得你同意。
 
-安装/卸载后重启 OpenCode。角色代理是 `mode: subagent`，不会出现在 Tab 主代理切换器里；在输入框输入 `@ai-go` 即可看到全部 13 个。
+安装/卸载后重启 OpenCode。角色代理是 `mode: subagent`，不会出现在 Tab 主代理切换器里；在输入框输入 `@ai-go` 即可看到全部 14 个。
 
 ### 3.（推荐）绑定 strong / execution 模型
 
@@ -183,9 +183,9 @@ scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全
 
 **推荐方式：让主 Agent 自己来。** 在 OpenCode 里运行 `/ai-go:models`，三种用法：
 
-- `/ai-go:models show` — **查看**：打印生效模型总表（主 Agent build、plan、13 个角色子代理、compaction），标注每个绑定的来源（哪个配置文件/继承自主模型）——这也是核对"某个子 Agent 执行时用什么模型"的权威方式；
+- `/ai-go:models show` — **查看**：打印生效模型总表（主 Agent build、plan、14 个角色子代理、compaction），标注每个绑定的来源（哪个配置文件/继承自主模型）——这也是核对"某个子 Agent 执行时用什么模型"的权威方式；
 - `/ai-go:models` — **一键配置**：读取可用模型列表，给出整套配比建议（默认「最强推理 + 同厂经济型执行 + 便宜压缩」，如 GPT-5.5 + GPT-5.4-mini，或 Claude Opus 4.8 + Claude Sonnet 4.6），展示旧 → 新对照，一次确认后写入；
-- `/ai-go:models --interactive` — **逐项配置**：主模型、Plan 模型、强档（9 个角色）、执行档（4 个角色）、压缩模型五个决策逐个过，每项给出建议和备选，由你亲自挑选，最后还可对单个角色微调。
+- `/ai-go:models --interactive` — **逐项配置**：主模型、Plan 模型、强档（9 个角色）、执行档（5 个角色）、压缩模型五个决策逐个过，每项给出建议和备选，由你亲自挑选，最后还可对单个角色微调。
 
 要更新时（新模型上线、想换配比）重跑即可（确认后覆盖引擎旧绑定，你手动加的其他配置不受影响）；`--reset` 清除引擎绑定，恢复"子代理继承主会话模型"的默认行为。配置在进程启动时加载，重启 OpenCode 后（包括 resume 旧会话）即生效。
 
@@ -206,7 +206,7 @@ scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全
 | 只分析不改代码 | `/ai-go:loop --readonly <问题>` |
 | 只要技术方案 | `/ai-go:design <PRD 或目标>` — 独立技能，任意项目可用（探索 → 大纲确认 → 完整方案）；要带任务记录的循环则用 `/ai-go:loop --mode design` |
 | 评审设计或 PR | `/ai-go:loop --mode review <对象>`，或直接 `@ai-go-tech-reviewer` |
-| 咨询单个专家 | `@` 任意角色（如 `@ai-go-backend-architect`、`@ai-go-security-engineer`） |
+| 咨询单个专家 | `@` 任意角色（如 `@ai-go-backend-architect`、`@ai-go-security-architect`） |
 | 恢复中断的循环 | `/ai-go:loop tasks/<task>`（状态都在任务记录里） |
 
 循环在以下节点必定暂停等人确认：路由歧义/高风险、大爆炸半径的设计、数据库或外部写操作、PR/发布/部署。
@@ -228,7 +228,7 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <项目根> \
 
 | 平台 | 状态 | 适配说明 |
 | --- | --- | --- |
-| **OpenCode** | ✅ 已支持 | 一等公民：`.opencode/` 项目级部署（默认，只在指定项目生效）+ 可选全局安装，`/ai-go:loop`、技能、13 个子代理开箱即用 |
+| **OpenCode** | ✅ 已支持 | 一等公民：`.opencode/` 项目级部署（默认，只在指定项目生效）+ 可选全局安装，`/ai-go:loop`、技能、14 个子代理开箱即用 |
 | **Claude Code** | 🗺️ 规划中 | 角色代理 → `.claude/agents/`，loop 命令 → slash command，协议文件直接复用 |
 | **Cursor** | 🗺️ 规划中 | 知识入口 → Cursor rules，loop 命令 → Cursor commands，子代理经由其 agent 机制加载 |
 | **Codex** | 🗺️ 规划中 | 角色代理 → TOML 配置，harness 的 `opencode run` 换成对应 CLI 调用（`OPENCODE_BIN` 已可注入） |

@@ -1,7 +1,7 @@
 # ai-go Agent Router
 
 `ai-go` is a portable development agent engine for OpenCode: the
-loop-engineering protocol, thirteen professional role subagents, and the
+loop-engineering protocol, fourteen professional role subagents, and the
 unattended harness, plus the tooling to initialize any target project's
 knowledge base.
 

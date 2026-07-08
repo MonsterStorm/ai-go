@@ -347,17 +347,25 @@ there; global installation is an explicit opt-in (see the repository README).
 The executor consults them via task invocation or `@` mention; each role file
 is the SSOT for its own standards.
 
+Role names encode the layer: **`*-architect` roles design and decide**
+(strong tier — designs, plans, trade-offs), **`*-engineer` roles execute
+precisely** (execution tier — implementation, tests, operations against an
+approved design), and the remaining roles are process roles (the product
+analyst at intake, the issue fixer for investigation-led fixes, the two
+read-only reviewers).
+
 | Agent | Use for | Model tier |
 | --- | --- | --- |
 | `ai-go-product-analyst` | PRD analysis, product-first scope decisions, acceptance criteria | strong |
 | `ai-go-system-architect` | Cross-service architecture: boundaries, integration patterns, technology selection, capacity/failure design, evolution | strong |
 | `ai-go-backend-architect` | Service-level domain modeling, API and data design, performance, safety, stability, migrations, backend implementation guidance | strong |
-| `ai-go-frontend-expert` | Interface design and UI implementation: framework, structure, interaction, visual, motion, experience | execution |
-| `ai-go-mobile-expert` | Mobile apps (iOS/Android/cross-platform): architecture, lifecycle/offline, mobile performance, store releases | execution |
-| `ai-go-data-engineer` | Schema at scale, high-risk migrations/backfills, data pipelines, storage selection, metrics correctness | strong |
-| `ai-go-ai-engineer` | Prompt/agent design, LLM integration, eval design, model routing, AI cost/latency/safety | strong |
+| `ai-go-data-architect` | Schema at scale, high-risk migrations/backfills, data pipelines, storage selection, metrics correctness | strong |
+| `ai-go-ai-architect` | Prompt/agent design, LLM integration, eval design, model routing, AI cost/latency/safety | strong |
+| `ai-go-security-architect` | Threat modeling, security review, authN/authZ, secrets and data protection, dependency risk | strong |
+| `ai-go-backend-engineer` | Precise backend implementation of well-specified slices — services, APIs, data access, scripts — against an approved design | execution |
+| `ai-go-frontend-engineer` | Interface design and UI implementation: framework, structure, interaction, visual, motion, experience | execution |
+| `ai-go-mobile-engineer` | Mobile apps (iOS/Android/cross-platform): architecture, lifecycle/offline, mobile performance, store releases | execution |
 | `ai-go-devops-engineer` | CI/CD, infrastructure/GitOps, deployment strategy, observability, reliability, incidents | execution |
-| `ai-go-security-engineer` | Threat modeling, security review, authN/authZ, secrets and data protection, dependency risk | strong |
 | `ai-go-test-engineer` | Test strategy and test design, professional feature verification, regression coverage, manual QA scripts | execution |
 | `ai-go-issue-fixer` | Daily bugs, regressions, incidents: reproduce, research, root-cause, minimal safe fix with regression guard | strong |
 | `ai-go-tech-reviewer` | Technical review during the work: design review before implementation, code review before merge | strong |
@@ -380,7 +388,7 @@ permission boundaries:
 
 | Position | Filled by | Permission boundary |
 | --- | --- | --- |
-| Maker (designs, codes, tests) | analyst/architects/experts/engineers per domain | read-write within the loop's Write-Scope, on a branch/worktree |
+| Maker (designs, codes, tests) | analyst/architects/engineers per domain | read-write within the loop's Write-Scope, on a branch/worktree |
 | Investigator | `ai-go-issue-fixer` (investigation half), analysts | read-only code + read-only bash (logs, queries, curl) |
 | Checker | `ai-go-tech-reviewer` during the work; `ai-go-delivery-reviewer` at the end | read-only: proposes findings, never edits; fixes go back to the maker |
 
@@ -417,6 +425,40 @@ where it buys something reading cannot:
   before delivery review), not per slice. Delivery review runs once at the
   end; after NEEDS_WORK fixes it re-verifies the failed criteria and anything
   the fixes touched, not the entire matrix from scratch.
+
+### Delegated implementation
+
+The division of labor is architects design, experts execute: strong-tier
+roles (and the executor session) own designs, plans, and reviews; the
+execution-tier makers own the token-heavy implementation work. For standard
+loops with well-specified slices, the executor should delegate implementation
+slices to the owning execution-tier maker instead of implementing everything
+in-session — this keeps the bulk of implementation tokens on execution-tier
+models while judgment stays on strong ones:
+
+| Slice domain | Delegate to |
+| --- | --- |
+| Backend services, APIs, data access, scripts | `ai-go-backend-engineer` |
+| Web UI | `ai-go-frontend-engineer` |
+| Mobile | `ai-go-mobile-engineer` |
+| Test authoring and execution | `ai-go-test-engineer` |
+| Infrastructure, CI/CD, deployment config | `ai-go-devops-engineer` |
+
+Rules:
+
+- **Delegate at slice or batch granularity** with a scoped brief (the slice's
+  acceptance, the relevant design section, files to touch, constraints, and
+  the verification commands); per-action delegation wastes more on session
+  spawns than it saves.
+- **The maker implements, verifies, and commits** per the Iteration Contract
+  and reports evidence; the executor keeps state.md, cross-slice coherence,
+  and plan upkeep.
+- **Escalation, not improvisation**: makers stop and report when the design
+  is ambiguous or wrong; design changes go through the design owner.
+- **Fallback brake**: two consecutive failed or NEEDS_WORK delegated slices
+  from the same maker means the executor takes the work back in-session.
+- **Light loops implement in-session** — delegation overhead outweighs the
+  savings on small tasks.
 
 Release is intentionally not a role: loops prepare releases (changelogs, tag
 proposals, prerequisites) but release execution always goes through the release
