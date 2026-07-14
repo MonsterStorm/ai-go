@@ -96,6 +96,50 @@ classic failure:
 Shared foundations (base tokens, accessibility bar) may be common by
 deliberate decision; everything else defaults to per-surface.
 
+## Spec format: DESIGN.md
+
+Unless the project already has its own convention (project-local rules win),
+write specs in the DESIGN.md format (github.com/google-labs-code/design.md):
+**YAML front matter carries the machine-readable tokens** (colors, typography,
+rounded, spacing, components with `{token.references}`), **markdown body
+carries the rationale** in the spec's section order (Overview, Colors,
+Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts).
+Tokens are the normative values; prose explains why and how to apply them.
+Where Node is available, use the tooling as verification:
+
+```bash
+npx @google/design.md lint DESIGN.md      # schema, token refs, WCAG contrast
+npx @google/design.md diff old.md new.md  # token-level regression check
+```
+
+## General versus per-task specs — and keeping them in sync
+
+Two levels, one direction of truth:
+
+- **General spec** (per surface class: e.g. `DESIGN.md` for the product,
+  `DESIGN.admin.md` for the console) lives in the project's knowledge base —
+  the durable design system every task inherits.
+- **Per-task spec** (`loop/artifacts/design/` in the task record) covers only
+  what this task's pages need beyond the general spec: the specific layouts,
+  new component variants, states unique to this feature. It **derives from**
+  the general spec — reference base tokens (`{colors.primary}`), never fork
+  their values — and marks every addition as either *task-local one-off* or
+  *promotion candidate*.
+
+Sync contract:
+
+1. **Downstream, at task start**: the per-task spec starts from the current
+   general spec; engineers receive both, and the task spec wins only where it
+   explicitly extends.
+2. **Upstream, at task end (the Ratchet moment)**: promote the promotion
+   candidates into the general spec — new tokens, reusable variants — then
+   run the diff against the previous version to confirm no unintended
+   regressions, and lint the result. One-offs stay in the task record.
+3. **Conflicts are spec decisions, not local overrides**: when a task needs
+   to violate the general spec, raise it as a P1/P2 open item — the general
+   spec gets amended (and diffed) or the task conforms; a task never silently
+   diverges.
+
 ## Deliverable style
 
 Write or update the project's design spec document(s) in its knowledge base —
