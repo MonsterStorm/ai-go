@@ -125,6 +125,7 @@ Agent 会忘，仓库不忘。每个任务是一条任务记录（spec / plan / 
 | **单一入口** | `engine/commands/loop.md` | `/ai-go:loop <目标>`，内部路由，用户无需预判任务类型 |
 | **会话技能** | `engine/skills/ai-go-loop/` | "loop this task"、"自动迭代交付" 等短语直接触发 |
 | **无人值守 harness** | `engine/scripts/loop-run.sh` | 每迭代一个全新会话，退出码语义化，自带各种刹车 |
+| **行为评测** | `engine/evals/` | 压力场景 + LLM 裁判：证明模型在诱惑下（跳过评审、篡改验收标准、跳过验证、越过红线）**真的遵守协议**，而不只是文件里写了 |
 | **知识库初始化器** | `scripts/init-knowledge-base.sh` | 一条命令让任何项目具备运行引擎的全部前提 |
 | **模板与测试** | `templates/`、`tests/` | 知识库脚手架模板、OpenCode 模型绑定示例；脚本与部署的契约测试 |
 
@@ -222,6 +223,8 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <项目根> \
 
 每次迭代启动一个全新 `opencode run` 会话，迭代间通过 `state.md` 交接。退出码：`0` DONE、`2` BLOCKED、`3` 达到迭代上限、`4` 协议/运行错误、`5` 停滞。
 
+加 `--edit-scope '<path>/**'`（可重复）可以**在权限层锁定写边界**：列出范围（外加任务目录）之外的文件编辑会被显式 deny 规则拒绝，且该规则在 `--auto` 下依然生效——路由判定的 Write-Scope 从"提示词约定"变成"机器强制"。
+
 > ⚠️ 非交互模式会自动批准所有权限。只在可接受无人值守修改的仓库和特性分支上运行，优先使用沙箱/容器环境，凭证从紧配置。运行前请阅读 `engine/loop-engineering.md` 的 "Unattended Safety" 一节。
 
 ## 平台支持
@@ -251,7 +254,8 @@ bash tests/engine-deployment-test.sh    # 引擎布局与 .opencode/ 副本一�
 bash tests/init-knowledge-base-test.sh  # 知识库初始化：产物、幂等、git 地址、失败路径
 ```
 
-- **深入阅读**：协议 SSOT [`engine/loop-engineering.md`](engine/loop-engineering.md)；设计哲学与开源先例 [`engine/references/loop-philosophy.md`](engine/references/loop-philosophy.md)。
+- **行为评测**：`engine/evals/eval-run.sh` 用真实会话跑压力场景并由 LLM 裁判打分（消耗 token，不进 CI）。改动协议承重规则后运行；每条新硬规则都要配一个回归场景。
+- **深入阅读**：协议 SSOT [`engine/loop-engineering.md`](engine/loop-engineering.md)；设计哲学与开源先例 [`engine/references/loop-philosophy.md`](engine/references/loop-philosophy.md)；浏览器验证手册 [`engine/references/browser-verification.md`](engine/references/browser-verification.md)。
 
 ## 问题反馈与贡献
 

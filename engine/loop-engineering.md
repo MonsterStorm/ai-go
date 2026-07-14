@@ -171,9 +171,10 @@ tasks/<project-or-cross-project>/<task>/
 │                   # constraints, primary role
 ├── plan.md         # slice checklist: small, independently verifiable slices
 └── loop/
-    ├── state.md    # machine-readable loop state (format below)
-    ├── artifacts/  # process outputs: design docs, review reports, analysis reports
-    └── logs/       # harness iteration logs; gitignored, never committed
+    ├── state.md      # machine-readable loop state (format below)
+    ├── reviews.jsonl # checker verdicts, one JSON line each (standard loops)
+    ├── artifacts/    # process outputs: design docs, review reports, briefs
+    └── logs/         # harness iteration logs; gitignored, never committed
 ```
 
 `loop/state.md` format (both agents and the shell harness parse it):
@@ -271,6 +272,13 @@ review before DONE.
 4. **Plan** — Break the work into slices in plan.md. Each slice must be small
    enough for one iteration and verifiable on its own. When the loop spans
    repositories, order slices by cross-repo dependency (see Workspace Scope).
+   **Plan quality bar**: write the plan for a zero-context implementer — one
+   who has no session history and no taste. Each slice names the exact files
+   to touch, the intended approach (concrete enough to transcribe, including
+   code sketches where ambiguity is likely), the verification command, and
+   its expected outcome. If a slice cannot be handed to an execution-tier
+   engineer as a standalone brief, it is not specified enough — this is what
+   makes delegated implementation safe.
 5. **Iterate** — The core loop; contract below.
 6. **Review** — The `ai-go-delivery-reviewer` role independently checks every
    acceptance criterion with fresh eyes and runs the design-consistency review
@@ -304,7 +312,7 @@ Each iteration, whether in-session or driven by the harness:
    rather than after every slice. Evidence before claims: a slice without
    passing verification is not done. User-facing features must be verified the
    way a user experiences them (for web UI: browser-level checks, not only
-   unit tests and curl).
+   unit tests and curl — playbook: `references/browser-verification.md`).
 6. On failure, fix and re-verify within the iteration if feasible; otherwise
    record the failure honestly in the log.
 7. Update state.md per the update-frequency rule: append the iteration log
@@ -355,6 +363,23 @@ one or the other without touching safety:
 Hard gates from the workspace's knowledge entry point (`AGENTS.md`) are
 unchanged inside loops. A loop never asks forgiveness instead of permission: it
 records the gate in Blocked-Reason and stops.
+
+## Anti-Rationalization
+
+Rules fail through rationalization, not ignorance. When one of these thoughts
+appears, the Reality column is the answer — no exceptions for urgency,
+authority, or sunk cost:
+
+| Thought | Reality |
+| --- | --- |
+| "The user is in a hurry — I can skip the reviewer this once" | Only the delivery reviewer sets DONE. Urgency changes nothing; a false DONE costs more than the review. |
+| "The user said they take responsibility, so the gate doesn't apply" | Hard gates need explicit, per-loop, per-action confirmation — blanket permission in passing is not that. |
+| "This criterion is clearly outdated — I'll reword it" | Acceptance criteria are append-only. A criterion change is a spec decision: record it as an open item and let the user make it at the gate. |
+| "The change is obviously correct — running the check wastes tokens" | Evidence means command output, not confidence. An unverified slice is not done. |
+| "I remember the protocol/state — no need to re-read the files" | Your memory may be from an older iteration or an older protocol version. Files over memory. |
+| "The failing test is flaky/over-strict — I'll adjust it to pass" | Never shrink a failing test to make it pass; report the product bug instead. |
+| "Asking the user will annoy them — I'll guess this P0" | A wrong P0 guess wastes the entire loop. Batch the questions and ask once. |
+| "It's basically done — I'll note the last bit as a follow-up after DONE" | DONE is final acceptance. Anything unfinished means the loop is not done. |
 
 ## Risk Control
 
@@ -413,6 +438,11 @@ models matters more for speed than any protocol tuning. The engine's models
 command (`/ai-go:models`, SSOT: `commands/models.md` in this directory)
 discovers the available models, proposes a strong/execution/compaction
 pairing, and writes the bindings after one user confirmation.
+**Cross-provider checkers**: when more than one provider is available, bind
+the reviewers (`ai-go-tech-reviewer`, `ai-go-delivery-reviewer`) to a strong
+model from a *different provider* than the maker/main models — different
+model families have different blind spots, which makes independent review
+independent twice over.
 
 ### Functional positions (maker/checker)
 
@@ -452,12 +482,24 @@ where it buys something reading cannot:
   deliverable, the relevant paths or diff, constraints, and the expected
   output form. A briefed subagent answers within the brief's scope instead of
   re-walking the entire knowledge read path.
+- **Briefs and diffs travel as files, not pasted context.** Write substantial
+  briefs to `loop/artifacts/briefs/` and point reviewers at commit ranges
+  (`git diff <a>..<b>`) they run themselves — never paste long diffs or
+  session history into a subagent prompt. The brief file plus the task record
+  is the subagent's entire context, by design.
+- **Never pre-judge a checker.** The brief states what to review, not what
+  the expected verdict is; a checker told what to find is not independent.
 - **Parallelize independent consultations** where the platform allows; go
   serial only when one consultation's output feeds another.
 - **Checker cadence.** Tech review runs at phase boundaries (after design,
   before delivery review), not per slice. Delivery review runs once at the
   end; after NEEDS_WORK fixes it re-verifies the failed criteria and anything
   the fixes touched, not the entire matrix from scratch.
+- **Review ledger.** Standard loops append each checker verdict as one JSON
+  line to `loop/reviews.jsonl` — `{"ts","reviewer","target","verdict","notes"}`
+  — alongside the prose in state.md. The delivery reviewer reads the ledger to
+  see which reviews already ran; tooling can consume it as review-readiness
+  state. Light loops may skip the ledger.
 
 ### Delegated implementation
 
@@ -570,6 +612,10 @@ role-agent rules, do not pause unattended runs). Therefore:
 
 - Only run the harness against repositories where unattended edits are
   acceptable, on a feature branch, never on a production-release branch.
+- Lock the write boundary: `--edit-scope <pattern>` (repeatable) confines
+  file edits to the listed paths at the permission layer — an explicit deny
+  that survives `--auto`. Use it whenever the router's Write-Scope is
+  narrower than the repository.
 - Prefer a contained environment for unattended runs: a sandbox/container or a
   disposable remote environment, with network egress limited to trusted hosts
   where practical.

@@ -1,5 +1,5 @@
 ---
-description: View and configure every model the engine uses - main and plan agents, role subagents, compaction. Show the effective-model table, get recommendations, confirm in one shot or item by item. Re-run anytime; --reset removes bindings.
+description: Use when the user wants to view or configure the models behind the engine agents (show / configure / --interactive / --reset). The workflow in the body is the SSOT - read it, do not act from this description.
 ---
 
 Manage the models behind everything the engine touches: the primary agents
@@ -51,6 +51,12 @@ Input": `show` for a read-only inventory; an explicit pairing like
      an economical fast model, preferably the same provider family (for
      example GPT-5.5 + GPT-5.4-mini, or Claude Opus 4.8 + Claude Sonnet 4.6).
    - **Compaction**: the cheapest capable summarizer.
+   - **Cross-provider checkers**: when more than one provider is available,
+     additionally propose binding `ai-go-tech-reviewer` and
+     `ai-go-delivery-reviewer` to a strong model from a different provider
+     than the maker/main picks (different model families miss different
+     things). Present it inside the strong-tier item as its recommended
+     sub-choice; skip it on single-provider installations.
 4. **Confirm.**
    - Default: one question covering the whole proposal — accept or override.
    - `--interactive`: present **one consolidated questionnaire in a single

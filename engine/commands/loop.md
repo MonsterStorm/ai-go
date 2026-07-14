@@ -1,5 +1,5 @@
 ---
-description: Start or resume a loop-engineering task - goal-driven autonomous research, design, implement, verify, fix iterations until delivery.
+description: Use to start or resume a loop-engineering task from a goal, a mission, or an existing task directory. The protocol in the body is the SSOT - read it, do not act from this description.
 ---
 
 Run a loop-engineering session per the protocol in `engine/loop-engineering.md`

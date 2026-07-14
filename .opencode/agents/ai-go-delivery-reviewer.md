@@ -30,8 +30,12 @@ this file. The loop protocol you enforce is
 4. Check the loop followed hard gates: no production writes, no release actions, no
    generated-file hand edits, and the project's API contract system updated in the
    same task for any API surface change.
-5. Inspect `git status` and the full diff in every touched repository: unrelated
-   changes, secrets, debug leftovers, and uncommitted files fail the review.
+5. Inspect `git status` and the full diff in every touched repository: task-scope
+   unrelated changes, secrets, debug leftovers, and uncommitted files fail the
+   review. Pre-existing out-of-scope dirty or untracked files do not by themselves
+   fail DONE when the loop explicitly isolates them in state.md, proves they were
+   not edited/staged/committed by this loop, and leaves them untouched per workspace
+   rules.
 
 ## Verdict
 

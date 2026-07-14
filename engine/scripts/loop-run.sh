@@ -18,6 +18,7 @@ MAX_ITERATIONS=10
 ITERATION_TIMEOUT=1800
 OPENCODE_AGENT=""
 OPENCODE_BIN="${OPENCODE_BIN:-opencode}"
+EDIT_SCOPES=()
 
 usage() {
   cat <<'USAGE'
@@ -46,6 +47,12 @@ Options:
   --agent <name>                Run iterations under this OpenCode agent, e.g. a
                                 permission-restricted read-only agent for
                                 analyze/review loops. Default: OpenCode's default.
+  --edit-scope <pattern>        Boundary lock (repeatable): permit file edits only
+                                under the given path pattern(s), enforced at the
+                                permission layer via an inline config override
+                                (explicit deny survives --auto). The task
+                                directory is always writable so state updates
+                                keep working. Example: --edit-scope 'src/**'.
   -h, --help                    Show this help.
 
 Environment:
@@ -73,6 +80,9 @@ while [ "$#" -gt 0 ]; do
     --agent)
       [ "$#" -ge 2 ] || { echo "--agent requires a name" >&2; exit 4; }
       OPENCODE_AGENT="$2"; shift 2 ;;
+    --edit-scope)
+      [ "$#" -ge 2 ] || { echo "--edit-scope requires a path pattern" >&2; exit 4; }
+      EDIT_SCOPES+=("$2"); shift 2 ;;
     -h|--help)
       usage; exit 0 ;;
     *)
@@ -93,6 +103,19 @@ HANDBOOK="$ENGINE_DIR/loop-engineering.md"
 CARD="$ENGINE_DIR/references/iteration-card.md"
 
 mkdir -p "$LOG_DIR"
+
+# Boundary lock: translate --edit-scope patterns into an inline OpenCode
+# permission override (deny all edits, allow the listed scopes plus the task
+# directory). Explicit deny rules stay enforced even under --auto.
+if [ "${#EDIT_SCOPES[@]}" -gt 0 ]; then
+  EDIT_RULES="\"*\": \"deny\""
+  for scope in "${EDIT_SCOPES[@]}" "$TASK_DIR/**"; do
+    esc="${scope//\\/\\\\}"; esc="${esc//\"/\\\"}"
+    EDIT_RULES="$EDIT_RULES, \"$esc\": \"allow\""
+  done
+  export OPENCODE_CONFIG_CONTENT="{\"permission\": {\"edit\": {$EDIT_RULES}}}"
+  echo "Boundary lock: edits restricted to ${EDIT_SCOPES[*]} (plus the task directory)"
+fi
 
 if [ ! -f "$STATE_FILE" ]; then
   cat > "$STATE_FILE" <<STATE

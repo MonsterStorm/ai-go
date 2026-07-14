@@ -11,6 +11,8 @@ system and designed to move to other workspaces and repositories without edits.
 | `loop-engineering.md` | Loop protocol SSOT: router, modes, state format, iteration contract, stop conditions, risk control |
 | `references/loop-philosophy.md` | Background: philosophy, six primitives, operator risks, open-source prior art (design-time reading, not per-iteration) |
 | `references/iteration-card.md` | Compact per-iteration contract for harness iterations (condensed from the protocol; kept in sync by tests) |
+| `references/browser-verification.md` | Playbook for user-level browser verification of UI-facing acceptance criteria |
+| `evals/` | Behavioral evals: pressure scenarios + `eval-run.sh` harness with an LLM judge — proves the model obeys the protocol, not just that the files say so |
 | `agents/` | Fourteen professional role subagents, named by layer — architects design (system, backend, data, AI, security), engineers execute (backend, frontend, mobile, DevOps, test), plus process roles (product analyst, issue fixer, tech reviewer, delivery reviewer) |
 | `commands/loop.md` | `/ai-go:loop` command definition |
 | `commands/models.md` | `/ai-go:models` — agent-guided strong/execution model binding (discover, propose, confirm, write config) |
@@ -29,6 +31,14 @@ system and designed to move to other workspaces and repositories without edits.
   the engine to another repository, so never put portable content inside them.
 - Role agents keep the two-section pattern: generic professional core plus a
   "Project knowledge binding" section.
+- Descriptions (frontmatter of agents, commands, skills) state **triggering
+  conditions only, never workflow summaries** — agents demonstrably follow a
+  summary in the description instead of reading the body. Point to the body
+  as the SSOT.
+- Load-bearing rule changes should come with a behavioral eval: add or update
+  a pressure scenario under `evals/scenarios/` (RED: capture the
+  rationalization; GREEN: close it in the protocol; REFACTOR: keep the
+  scenario as the regression guard).
 - Knowledge (routers, handbooks, project/domain docs, task records) stays outside
   `engine/`.
 

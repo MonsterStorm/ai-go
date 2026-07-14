@@ -127,6 +127,7 @@ The protocol, roles, commands, and skills are all Markdown; the harness is one B
 | **Single entry** | `engine/commands/loop.md` | `/ai-go:loop <goal>` with internal routing — you never pre-classify the task |
 | **Conversational skill** | `engine/skills/ai-go-loop/` | Phrases like "loop this task" trigger it directly |
 | **Unattended harness** | `engine/scripts/loop-run.sh` | Fresh session per iteration, semantic exit codes, brakes built in |
+| **Behavioral evals** | `engine/evals/` | Pressure scenarios + LLM judge: proves the model *obeys* the protocol under temptation (skip the reviewer, weaken criteria, skip verification, cross a gate), not just that the files say so |
 | **Knowledge-base initializer** | `scripts/init-knowledge-base.sh` | One command gives any project everything the engine needs |
 | **Templates & tests** | `templates/`, `tests/` | Knowledge-base scaffolding, OpenCode model-binding example; contract tests for scripts and deployment |
 
@@ -224,6 +225,8 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <project-root> \
 
 Each iteration starts a fresh `opencode run` session; iterations hand off through `state.md`. Exit codes: `0` DONE, `2` BLOCKED, `3` iteration cap reached, `4` protocol/run error, `5` stalled.
 
+Add `--edit-scope '<path>/**'` (repeatable) to **lock the write boundary at the permission layer**: edits outside the listed scopes (plus the task directory) are denied by an explicit rule that survives `--auto` — the router's Write-Scope becomes machine-enforced, not prompt-hoped.
+
 > ⚠️ Non-interactive mode auto-approves permissions. Only run against repositories and feature branches where unattended edits are acceptable, prefer sandboxed/containerized environments, and scope credentials tightly. Read the "Unattended Safety" section of `engine/loop-engineering.md` first.
 
 ## Platform Support
@@ -253,7 +256,8 @@ bash tests/engine-deployment-test.sh    # engine layout and .opencode/ copy cons
 bash tests/init-knowledge-base-test.sh  # knowledge-base init: artifacts, idempotency, git URLs, failure paths
 ```
 
-- **Deeper reading**: protocol SSOT [`engine/loop-engineering.md`](engine/loop-engineering.md); design philosophy and open-source prior art [`engine/references/loop-philosophy.md`](engine/references/loop-philosophy.md).
+- **Behavioral evals**: `engine/evals/eval-run.sh` runs pressure scenarios against real sessions with an LLM judge (burns tokens; not in CI). Run it after changing load-bearing protocol rules; every new hard rule ships with a regression scenario.
+- **Deeper reading**: protocol SSOT [`engine/loop-engineering.md`](engine/loop-engineering.md); design philosophy and open-source prior art [`engine/references/loop-philosophy.md`](engine/references/loop-philosophy.md); browser-verification playbook [`engine/references/browser-verification.md`](engine/references/browser-verification.md).
 
 ## Issues & Contributing
 
