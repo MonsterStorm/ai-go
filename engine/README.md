@@ -12,6 +12,7 @@ system and designed to move to other workspaces and repositories without edits.
 | `references/loop-philosophy.md` | Background: philosophy, six primitives, operator risks, open-source prior art (design-time reading, not per-iteration) |
 | `references/iteration-card.md` | Compact per-iteration contract for harness iterations (condensed from the protocol; kept in sync by tests) |
 | `references/browser-verification.md` | Playbook for user-level browser verification of UI-facing acceptance criteria |
+| `references/design-taste.md` | Operational design taste: Design Read, surface registers, the three dials, AI-slop test, tell catalog, implementation floor |
 | `evals/` | Behavioral evals: pressure scenarios + `eval-run.sh` harness with an LLM judge — proves the model obeys the protocol, not just that the files say so |
 | `agents/` | Fifteen professional role subagents, named by layer — architects design (system, backend, data, AI, security, design), engineers execute (backend, frontend, mobile, DevOps, test), plus process roles (product analyst, issue fixer, tech reviewer, delivery reviewer) |
 | `commands/loop.md` | `/ai-go:loop` command definition |
