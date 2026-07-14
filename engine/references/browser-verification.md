@@ -38,6 +38,16 @@ pieces, not the experience. This playbook is the how.
 - Before delivery review of UI-facing work: the reviewer re-runs the
   browser-level check, so leave it runnable.
 
+## Wiring a browser tool (optional, for UI-heavy projects)
+
+When one-shot scripts become the bottleneck, wire an existing browser MCP
+server (for example Playwright's official MCP) into the agent platform's MCP
+config for that project, and record the choice plus usage examples in the
+project's knowledge entry point under verification commands. Adopt existing
+infrastructure — do not build a bespoke browser daemon for the engine. Local
+run and seed-data commands belong in the knowledge entry point too: a browser
+check is only as good as the environment it can reach.
+
 ## Cost discipline
 
 Browser checks are the expensive rung of the verification ladder — run the

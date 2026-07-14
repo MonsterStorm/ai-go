@@ -563,14 +563,20 @@ place the next agent will read, via the workspace's knowledge-capture flow;
 checker-standard findings belong in the reviewer/test role files or the
 workspace's review criteria.
 
-After every completed loop, deliberately sweep for three kinds of durable
+After every completed loop, deliberately sweep for four kinds of durable
 learnings — do not wait for them to surface on their own:
 
 - **Technical standards** — quality bars or design rules future work should
   hold to;
 - **Behavior norms** — rules about how agents should act (when to ask, pause,
   verify, escalate) that would have prevented friction this loop;
-- **Pitfalls** — concrete failures likely to recur.
+- **Pitfalls** — concrete failures likely to recur;
+- **Eval scenarios** — any moment this loop where an agent bent a rule, tried
+  to, or argued it should: capture the rationalization verbatim and turn it
+  into a pressure scenario (drafts into `loop/artifacts/eval-scenarios/`,
+  promoted to the engine's `evals/scenarios/` by the engine maintainers).
+  The `/ai-go:autopsy` command runs this sweep systematically over a
+  finished task record.
 
 Project-specific learnings go to the workspace knowledge base. Generic ones
 belong to the loop system itself — role files, review criteria, this protocol

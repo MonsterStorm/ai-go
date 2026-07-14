@@ -127,7 +127,7 @@ The protocol, roles, commands, and skills are all Markdown; the harness is one B
 | **Single entry** | `engine/commands/loop.md` | `/ai-go:loop <goal>` with internal routing — you never pre-classify the task |
 | **Conversational skill** | `engine/skills/ai-go-loop/` | Phrases like "loop this task" trigger it directly |
 | **Unattended harness** | `engine/scripts/loop-run.sh` | Fresh session per iteration, semantic exit codes, brakes built in |
-| **Behavioral evals** | `engine/evals/` | Pressure scenarios + LLM judge: proves the model *obeys* the protocol under temptation (skip the reviewer, weaken criteria, skip verification, cross a gate), not just that the files say so |
+| **Behavioral evals** | `engine/evals/` | Pressure scenarios + LLM judge: proves the model *obeys* the protocol under temptation, not just that the files say so. Grows from real usage: the Ratchet's eval lane and `/ai-go:autopsy` turn observed rule bends into scenario drafts; `--ledger` tracks pass-rate over time |
 | **Knowledge-base initializer** | `scripts/init-knowledge-base.sh` | One command gives any project everything the engine needs |
 | **Templates & tests** | `templates/`, `tests/` | Knowledge-base scaffolding, OpenCode model-binding example; contract tests for scripts and deployment |
 
@@ -213,6 +213,7 @@ Open OpenCode in the target project:
 | Review a design or PR | `/ai-go:loop --mode review <target>`, or `@ai-go-tech-reviewer` directly |
 | Consult one expert | `@` any role (e.g. `@ai-go-backend-architect`, `@ai-go-security-architect`) |
 | Resume an interrupted loop | `/ai-go:loop tasks/<task>` (all state lives in the task record) |
+| Post-mortem a finished loop | `/ai-go:autopsy tasks/<task>` — mines the record for rule bends and rationalizations; drafts eval scenarios and amendments |
 
 The loop always pauses for you at: ambiguous/high-risk routing, large-blast-radius designs, database or external write operations, and PR/release/deploy actions.
 
@@ -227,6 +228,8 @@ Each iteration starts a fresh `opencode run` session; iterations hand off throug
 
 Add `--edit-scope '<path>/**'` (repeatable) to **lock the write boundary at the permission layer**: edits outside the listed scopes (plus the task directory) are denied by an explicit rule that survives `--auto` — the router's Write-Scope becomes machine-enforced, not prompt-hoped.
 
+`--runner claude` drives iterations through Claude Code (`claude -p`, experimental; `--agent`/`--edit-scope` are opencode-only). Every run appends stats (runner, iterations, exit reason, duration) to the task's `loop/harness-runs.jsonl`.
+
 > ⚠️ Non-interactive mode auto-approves permissions. Only run against repositories and feature branches where unattended edits are acceptable, prefer sandboxed/containerized environments, and scope credentials tightly. Read the "Unattended Safety" section of `engine/loop-engineering.md` first.
 
 ## Platform Support
@@ -236,7 +239,7 @@ The engine's protocol, roles, and commands are pure Markdown and the harness is 
 | Platform | Status | Adaptation notes |
 | --- | --- | --- |
 | **OpenCode** | ✅ Supported | First-class: `.opencode/` project-scope deployment (default, activates only where you opt in) + optional global install; `/ai-go:loop`, skills, and all 14 subagents work out of the box |
-| **Claude Code** | 🗺️ Planned | Role agents → `.claude/agents/`, loop command → slash command, protocol files reused as-is |
+| **Claude Code** | 🧪 Experimental | `scripts/install-claude-code.sh` (agents converted on the fly, commands namespaced, loop skill); unattended via `loop-run.sh --runner claude`. Not yet validated against the full acceptance bar — feedback welcome |
 | **Cursor** | 🗺️ Planned | Knowledge entry point → Cursor rules, loop command → Cursor commands, subagents via its agent mechanism |
 | **Codex** | 🗺️ Planned | Role agents → TOML config; the harness's `opencode run` swaps for the corresponding CLI (`OPENCODE_BIN` is already injectable) |
 

@@ -17,6 +17,7 @@ system and designed to move to other workspaces and repositories without edits.
 | `commands/loop.md` | `/ai-go:loop` command definition |
 | `commands/models.md` | `/ai-go:models` — agent-guided strong/execution model binding (discover, propose, confirm, write config) |
 | `commands/design.md` | `/ai-go:design` — standalone technical-design skill (explore, confirm outline, write the full design); works in any project |
+| `commands/autopsy.md` | `/ai-go:autopsy` — post-mortem a finished loop: mine the task record for rule bends, rationalizations, and friction; draft eval scenarios and amendments |
 | `skills/ai-go-loop/` | Conversational trigger skill |
 | `engine/scripts/loop-run.sh` | Unattended harness driving `opencode run` iterations |
 

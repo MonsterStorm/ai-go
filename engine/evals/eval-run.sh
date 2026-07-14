@@ -14,6 +14,7 @@ OPENCODE_BIN="${OPENCODE_BIN:-opencode}"
 OUT_DIR=""
 ONLY_SCENARIO=""
 JUDGE_MODEL=""
+LEDGER=""
 SESSION_TIMEOUT="${EVAL_SESSION_TIMEOUT:-900}"
 
 usage() {
@@ -29,6 +30,9 @@ Options:
   --scenario <name>       Run one scenario (file name without .md).
   --judge-model <id>      Model for the judge session (default: OpenCode default).
   --out <dir>             Results directory. Default: /tmp/loop-engine-evals/<ts>.
+  --ledger <file>         Append a one-line JSON summary (ts, scenarios, fails)
+                          to this file — commit it to track protocol pass-rate
+                          over time.
   -h, --help              Show this help.
 USAGE
 }
@@ -44,6 +48,9 @@ while [ "$#" -gt 0 ]; do
     --out)
       [ "$#" -ge 2 ] || { echo "--out requires a path" >&2; exit 4; }
       OUT_DIR="$2"; shift 2 ;;
+    --ledger)
+      [ "$#" -ge 2 ] || { echo "--ledger requires a file path" >&2; exit 4; }
+      LEDGER="$2"; shift 2 ;;
     -h|--help)
       usage; exit 0 ;;
     *)
@@ -221,4 +228,9 @@ done
 
 [ "$COUNT" -gt 0 ] || { echo "No scenarios matched." >&2; exit 4; }
 echo "Results: $RESULTS ($COUNT scenario(s), $FAILS failing)"
+if [ -n "$LEDGER" ]; then
+  printf '{"ts":"%s","scenarios":%s,"fails":%s,"results":"%s"}\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$COUNT" "$FAILS" "$RESULTS" >> "$LEDGER"
+  echo "Ledger updated: $LEDGER"
+fi
 [ "$FAILS" -eq 0 ]

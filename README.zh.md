@@ -125,7 +125,7 @@ Agent 会忘，仓库不忘。每个任务是一条任务记录（spec / plan / 
 | **单一入口** | `engine/commands/loop.md` | `/ai-go:loop <目标>`，内部路由，用户无需预判任务类型 |
 | **会话技能** | `engine/skills/ai-go-loop/` | "loop this task"、"自动迭代交付" 等短语直接触发 |
 | **无人值守 harness** | `engine/scripts/loop-run.sh` | 每迭代一个全新会话，退出码语义化，自带各种刹车 |
-| **行为评测** | `engine/evals/` | 压力场景 + LLM 裁判：证明模型在诱惑下（跳过评审、篡改验收标准、跳过验证、越过红线）**真的遵守协议**，而不只是文件里写了 |
+| **行为评测** | `engine/evals/` | 压力场景 + LLM 裁判：证明模型在诱惑下**真的遵守协议**，而不只是文件里写了。场景库靠真实使用生长：Ratchet 评测车道和 `/ai-go:autopsy` 把观察到的违规倾向变成场景草稿；`--ledger` 记录通过率趋势 |
 | **知识库初始化器** | `scripts/init-knowledge-base.sh` | 一条命令让任何项目具备运行引擎的全部前提 |
 | **模板与测试** | `templates/`、`tests/` | 知识库脚手架模板、OpenCode 模型绑定示例；脚本与部署的契约测试 |
 
@@ -211,6 +211,7 @@ scripts/install-opencode-engine.sh --uninstall --global     # 移除之前的全
 | 评审设计或 PR | `/ai-go:loop --mode review <对象>`，或直接 `@ai-go-tech-reviewer` |
 | 咨询单个专家 | `@` 任意角色（如 `@ai-go-backend-architect`、`@ai-go-security-architect`） |
 | 恢复中断的循环 | `/ai-go:loop tasks/<task>`（状态都在任务记录里） |
+| 复盘跑完的循环 | `/ai-go:autopsy tasks/<task>` — 从记录里挖掘违规倾向与合理化说辞，产出评测场景草稿和协议修订建议 |
 
 循环在以下节点必定暂停等人确认：路由歧义/高风险、大爆炸半径的设计、数据库或外部写操作、PR/发布/部署。
 
@@ -225,6 +226,8 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <项目根> \
 
 加 `--edit-scope '<path>/**'`（可重复）可以**在权限层锁定写边界**：列出范围（外加任务目录）之外的文件编辑会被显式 deny 规则拒绝，且该规则在 `--auto` 下依然生效——路由判定的 Write-Scope 从"提示词约定"变成"机器强制"。
 
+`--runner claude` 用 Claude Code（`claude -p`）驱动迭代（实验性；`--agent`/`--edit-scope` 仅限 opencode）。每次运行会把统计（runner、迭代数、退出原因、耗时）追加到任务的 `loop/harness-runs.jsonl`。
+
 > ⚠️ 非交互模式会自动批准所有权限。只在可接受无人值守修改的仓库和特性分支上运行，优先使用沙箱/容器环境，凭证从紧配置。运行前请阅读 `engine/loop-engineering.md` 的 "Unattended Safety" 一节。
 
 ## 平台支持
@@ -234,7 +237,7 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <项目根> \
 | 平台 | 状态 | 适配说明 |
 | --- | --- | --- |
 | **OpenCode** | ✅ 已支持 | 一等公民：`.opencode/` 项目级部署（默认，只在指定项目生效）+ 可选全局安装，`/ai-go:loop`、技能、14 个子代理开箱即用 |
-| **Claude Code** | 🗺️ 规划中 | 角色代理 → `.claude/agents/`，loop 命令 → slash command，协议文件直接复用 |
+| **Claude Code** | 🧪 实验性 | `scripts/install-claude-code.sh`（agent 即时转换、命令带命名空间、loop 技能）；无人值守用 `loop-run.sh --runner claude`。尚未跑完完整验收循环——欢迎反馈 |
 | **Cursor** | 🗺️ 规划中 | 知识入口 → Cursor rules，loop 命令 → Cursor commands，子代理经由其 agent 机制加载 |
 | **Codex** | 🗺️ 规划中 | 角色代理 → TOML 配置，harness 的 `opencode run` 换成对应 CLI 调用（`OPENCODE_BIN` 已可注入） |
 
