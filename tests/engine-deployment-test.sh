@@ -13,7 +13,7 @@ test -f "$ROOT/engine/skills/ai-go-loop/SKILL.md"
 test -x "$ROOT/engine/scripts/loop-run.sh"
 
 ALL_AGENTS="ai-go-product-analyst ai-go-system-architect ai-go-backend-architect \
-  ai-go-backend-engineer ai-go-frontend-engineer ai-go-mobile-engineer \
+  ai-go-design-architect ai-go-backend-engineer ai-go-frontend-engineer ai-go-mobile-engineer \
   ai-go-data-architect ai-go-ai-architect ai-go-devops-engineer \
   ai-go-security-architect ai-go-test-engineer ai-go-issue-fixer \
   ai-go-tech-reviewer ai-go-delivery-reviewer"

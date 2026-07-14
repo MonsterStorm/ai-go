@@ -44,7 +44,7 @@ fi
 grep -F 'PASS' "$REVIEWER" >/dev/null
 
 # All fourteen agents installed.
-test "$(ls "$TARGET"/agents/ai-go-*.md | wc -l)" -eq 14
+test "$(ls "$TARGET"/agents/ai-go-*.md | wc -l)" -eq 15
 
 # Refresh semantics: stale files disappear on re-install.
 touch "$TARGET/agents/ai-go-old-role.md" "$TARGET/commands/ai-go/stale.md"

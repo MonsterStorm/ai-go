@@ -420,6 +420,7 @@ read-only reviewers).
 | `ai-go-data-architect` | Schema at scale, high-risk migrations/backfills, data pipelines, storage selection, metrics correctness | strong |
 | `ai-go-ai-architect` | Prompt/agent design, LLM integration, eval design, model routing, AI cost/latency/safety | strong |
 | `ai-go-security-architect` | Threat modeling, security review, authN/authZ, secrets and data protection, dependency risk | strong |
+| `ai-go-design-architect` | Design systems and specs: extract from existing code or elicit from the user; separate user-facing vs admin surface rules that govern frontend implementation | strong |
 | `ai-go-backend-engineer` | Precise backend implementation of well-specified slices — services, APIs, data access, scripts — against an approved design | execution |
 | `ai-go-frontend-engineer` | Interface design and UI implementation: framework, structure, interaction, visual, motion, experience | execution |
 | `ai-go-mobile-engineer` | Mobile apps (iOS/Android/cross-platform): architecture, lifecycle/offline, mobile performance, store releases | execution |

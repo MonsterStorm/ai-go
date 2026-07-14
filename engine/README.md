@@ -13,7 +13,7 @@ system and designed to move to other workspaces and repositories without edits.
 | `references/iteration-card.md` | Compact per-iteration contract for harness iterations (condensed from the protocol; kept in sync by tests) |
 | `references/browser-verification.md` | Playbook for user-level browser verification of UI-facing acceptance criteria |
 | `evals/` | Behavioral evals: pressure scenarios + `eval-run.sh` harness with an LLM judge — proves the model obeys the protocol, not just that the files say so |
-| `agents/` | Fourteen professional role subagents, named by layer — architects design (system, backend, data, AI, security), engineers execute (backend, frontend, mobile, DevOps, test), plus process roles (product analyst, issue fixer, tech reviewer, delivery reviewer) |
+| `agents/` | Fifteen professional role subagents, named by layer — architects design (system, backend, data, AI, security, design), engineers execute (backend, frontend, mobile, DevOps, test), plus process roles (product analyst, issue fixer, tech reviewer, delivery reviewer) |
 | `commands/loop.md` | `/ai-go:loop` command definition |
 | `commands/models.md` | `/ai-go:models` — agent-guided strong/execution model binding (discover, propose, confirm, write config) |
 | `commands/design.md` | `/ai-go:design` — standalone technical-design skill (explore, confirm outline, write the full design); works in any project |
