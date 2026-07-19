@@ -1,23 +1,69 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "agent": {
-    "ai-go-product-analyst": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
-    "ai-go-system-architect": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
-    "ai-go-backend-architect": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
-    "ai-go-data-architect": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
-    "ai-go-ai-architect": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
-    "ai-go-security-architect": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
-    "ai-go-issue-fixer": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
-    "ai-go-tech-reviewer": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
-    "ai-go-delivery-reviewer": { "mode": "subagent", "model": "anthropic/claude-opus-4-8" },
-
-    "ai-go-backend-engineer": { "mode": "subagent", "model": "anthropic/claude-sonnet-4-6" },
-    "ai-go-frontend-engineer": { "mode": "subagent", "model": "anthropic/claude-sonnet-4-6" },
-    "ai-go-mobile-engineer": { "mode": "subagent", "model": "anthropic/claude-sonnet-4-6" },
-    "ai-go-devops-engineer": { "mode": "subagent", "model": "anthropic/claude-sonnet-4-6" },
-    "ai-go-test-engineer": { "mode": "subagent", "model": "anthropic/claude-sonnet-4-6" },
-
-    "compaction": { "model": "anthropic/claude-haiku-4-6" }
+    "ai-go-product-analyst": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-system-architect": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-backend-architect": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-data-architect": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-ai-architect": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-security-architect": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-design-architect": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-issue-fixer": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-tech-reviewer": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-delivery-reviewer": {
+      "mode": "subagent",
+      "model": "anthropic/claude-opus-4-8"
+    },
+    "ai-go-backend-engineer": {
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "ai-go-frontend-engineer": {
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "ai-go-mobile-engineer": {
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "ai-go-devops-engineer": {
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "ai-go-test-engineer": {
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "compaction": {
+      "model": "anthropic/claude-haiku-4-6"
+    }
   },
   "compaction": {
     "auto": true,

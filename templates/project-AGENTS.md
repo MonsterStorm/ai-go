@@ -30,6 +30,8 @@ the exact commands that prove this project works:
 | Tests | TODO |
 | Lint / typecheck | TODO |
 | Smoke check (cheap, run first) | TODO |
+| Local run + seed data (needed for user-level/browser verification) | TODO |
+| UI verification tool (project E2E framework or a browser MCP), if UI-facing | TODO |
 
 ## Hard Rules
 

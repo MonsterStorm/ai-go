@@ -34,7 +34,7 @@ Engine: route → explore the code → technical design → review → slice pla
         → distill this run's pitfalls into rules (the Ratchet)
 ```
 
-It is **not another agent framework**. No SDK, no DSL, no orchestration graph to learn — it is a **protocol** (a loop contract written in Markdown) + **14 professional roles** (strict maker/checker separation) + **one harness script** (the unattended driver). Every part is readable, auditable, and hackable.
+It is **not another agent framework**. No SDK, no DSL, no orchestration graph to learn — it is a **protocol** (a loop contract written in Markdown) + **15 professional roles** (strict maker/checker separation) + **one harness script** (the unattended driver). Every part is readable, auditable, and hackable.
 
 ## Why It Exists
 
@@ -98,14 +98,14 @@ The protocol, roles, commands, and skills are all Markdown; the harness is one B
 | **Orchestration frameworks** (LangGraph / CrewAI / AutoGen) | Workflows hardcoded as graphs in code; learn an SDK before you can work | Zero framework code; the protocol defines only goals, stop conditions, and review — the model picks the path |
 | **"Fully autonomous" agents** (AutoGPT lineage) | High autonomy, no verification discipline, nobody stops a runaway | Evidence before claims + three-strikes breaker + stall brake + hard risk gates |
 | **Agent products** (Devin-style) | Black-box SaaS, unauditable, hard to bend to your team's rules | All Markdown + Bash, MIT; write your rules into the knowledge entry point and the engine obeys on the spot |
-| **Unattended loop scripts** (Ralph loop and variants) | A static PROMPT.md + while true, no roles, no risk control | Structured state contract + 14 roles + exit-code semantics (DONE/BLOCKED/max/stalled) |
+| **Unattended loop scripts** (Ralph loop and variants) | A static PROMPT.md + while true, no roles, no risk control | Structured state contract + 15 roles + exit-code semantics (DONE/BLOCKED/max/stalled) |
 
 ## Core Components
 
 ```text
 ┌──────────────────────────────────────────────────────┐
 │  engine/  (the engine: portable, project-agnostic)   │
-│  loop protocol · 14 role subagents · loop command/    │
+│  loop protocol · 15 role subagents · loop command/    │
 │  skill · unattended harness                           │
 └──────────────────────┬───────────────────────────────┘
                        │ loaded at runtime via the knowledge entry point
@@ -123,10 +123,12 @@ The protocol, roles, commands, and skills are all Markdown; the harness is one B
 | Component | Location | Description |
 | --- | --- | --- |
 | **Loop protocol (SSOT)** | `engine/loop-engineering.md` | Router, six modes (design/dev/fix/analyze/review/test), multi-repo rules, state format, iteration contract, stop conditions, risk control, the Ratchet |
-| **14 professional roles** | `engine/agents/` | Names encode the layer: `*-architect` roles design (system, backend, data, AI, security — strong tier), `*-engineer` roles execute precisely (backend, frontend, mobile, DevOps, test — execution tier), plus process roles (product analyst, issue fixer, tech reviewer, **delivery reviewer — the only role that may set DONE**) |
+| **15 professional roles** | `engine/agents/` | Names encode the layer: `*-architect` roles design (system, backend, data, AI, security, design — strong tier), `*-engineer` roles execute precisely (backend, frontend, mobile, DevOps, test — execution tier), plus process roles (product analyst, issue fixer, tech reviewer, **delivery reviewer — the only role that may set DONE**) |
 | **Single entry** | `engine/commands/loop.md` | `/ai-go:loop <goal>` with internal routing — you never pre-classify the task |
 | **Conversational skill** | `engine/skills/ai-go-loop/` | Phrases like "loop this task" trigger it directly |
 | **Unattended harness** | `engine/scripts/loop-run.sh` | Fresh session per iteration, semantic exit codes, brakes built in |
+| **Audit-grade assurance** | `engine/references/audit-grade.md`, `templates/audit-grade-task.md` | Opt-in high-risk model: dual loops, C/W/G/A traceability, gate contracts with invalid evidence, reopen/disputed state, audit ledgers, fail-closed handoff |
+| **Behavioral evals** | `engine/evals/` | Pressure scenarios + LLM judge: proves the model *obeys* the protocol under temptation, not just that the files say so. Grows from real usage: the Ratchet's eval lane and `/ai-go:autopsy` turn observed rule bends into scenario drafts; `--ledger` tracks pass-rate over time |
 | **Knowledge-base initializer** | `scripts/init-knowledge-base.sh` | One command gives any project everything the engine needs |
 | **Templates & tests** | `templates/`, `tests/` | Knowledge-base scaffolding, OpenCode model-binding example; contract tests for scripts and deployment |
 
@@ -156,7 +158,7 @@ The script is idempotent and never overwrites existing files. It creates:
 | `AGENTS.md` | Knowledge entry point: project overview, **verification commands**, **hard rules**, task-record conventions |
 | `knowledge/index.md` | Lightweight knowledge index: architecture, conventions, pitfalls (the Ratchet's destination) |
 | `tasks/README.md` | Loop task-record format |
-| `.opencode/` | The engine's commands, skills, and 14 role agents (project-scope loading; skip with `--no-opencode`) |
+| `.opencode/` | The engine's commands, skills, and 15 role agents (project-scope loading; skip with `--no-opencode`) |
 | `.gitignore` | Appends `tasks/**/loop/logs/` (harness runtime logs stay out of git) |
 
 Loading semantics are **layered**: the **knowledge base auto-loads** (`instructions` in `.opencode/opencode.json` puts `AGENTS.md` into every session in that project); **commands act only when typed** (`/ai-go:loop`); **role agents and the loop skill are on-demand** — the config gates `ai-go-*` `task`/`skill` permissions behind `ask`, so the AI cannot delegate to roles or slide into loop mode on its own; your own triggers (`@ai-go-...` mentions, `/ai-go:loop`) always work, and the unattended harness runs with `--auto` so these interactive gates never stall it.
@@ -179,7 +181,7 @@ scripts/install-opencode-engine.sh --uninstall --global     # remove a previous 
 
 Global installation is safe: the engine carries no project knowledge (knowledge bases always load per project), and the installer writes/suggests the on-demand gates (`ai-go-*` `task`/`skill` set to `ask`) in the global config — commands and roles become **available** everywhere but never **act** uninvited; passive multi-agent/loop activation always asks you first.
 
-Restart OpenCode after installing or uninstalling. Role agents are `mode: subagent`, so they do not appear in the Tab primary-agent switcher; type `@ai-go` in the input box to see all 14.
+Restart OpenCode after installing or uninstalling. Role agents are `mode: subagent`, so they do not appear in the Tab primary-agent switcher; type `@ai-go` in the input box to see all 15.
 
 ### 3. (Recommended) Bind strong / execution models
 
@@ -187,7 +189,7 @@ Restart OpenCode after installing or uninstalling. Role agents are `mode: subage
 
 **Recommended: let the main agent do it.** Run `/ai-go:models` in OpenCode, three usages:
 
-- `/ai-go:models show` — **view**: prints the effective-model table (main `build` agent, `plan`, all 14 role subagents, compaction), with each binding's source (which config file / inherited from main) — also the authoritative way to check which model each subagent runs with;
+- `/ai-go:models show` — **view**: prints the effective-model table (main `build` agent, `plan`, all 15 role subagents, compaction), with each binding's source (which config file / inherited from main) — also the authoritative way to check which model each subagent runs with;
 - `/ai-go:models` — **one-shot configure**: reads the available model list, proposes a full pairing (default: strongest reasoning + same-provider economical execution + cheap compaction, e.g. GPT-5.5 + GPT-5.4-mini, or Claude Opus 4.8 + Claude Sonnet 4.6), shows old → new, writes after one confirmation;
 - `/ai-go:models --interactive` — **item-by-item**: five decisions in one consolidated questionnaire (main, plan, strong tier of 9 roles, execution tier of 5 roles, compaction), each with a recommendation and alternatives; you answer once with per-item picks, plus optional per-role overrides.
 
@@ -212,6 +214,7 @@ Open OpenCode in the target project:
 | Review a design or PR | `/ai-go:loop --mode review <target>`, or `@ai-go-tech-reviewer` directly |
 | Consult one expert | `@` any role (e.g. `@ai-go-backend-architect`, `@ai-go-security-architect`) |
 | Resume an interrupted loop | `/ai-go:loop tasks/<task>` (all state lives in the task record) |
+| Post-mortem a finished loop | `/ai-go:autopsy tasks/<task>` — mines the record for rule bends and rationalizations; drafts eval scenarios and amendments |
 
 The loop always pauses for you at: ambiguous/high-risk routing, large-blast-radius designs, database or external write operations, and PR/release/deploy actions.
 
@@ -224,6 +227,32 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <project-root> \
 
 Each iteration starts a fresh `opencode run` session; iterations hand off through `state.md`. Exit codes: `0` DONE, `2` BLOCKED, `3` iteration cap reached, `4` protocol/run error, `5` stalled.
 
+Add `--edit-scope '<path>/**'` (repeatable) to **lock the write boundary at the permission layer**: edits outside the listed scopes (plus the task directory) are denied by an explicit rule that survives `--auto` — the router's Write-Scope becomes machine-enforced, not prompt-hoped.
+
+`--runner claude` drives iterations through Claude Code (`claude -p`, experimental; `--agent`/`--edit-scope` are opencode-only). Every run appends stats (runner, iterations, exit reason, duration) to the task's `loop/harness-runs.jsonl`.
+
+### 6. Audit-grade high-risk work
+
+For architecture, concurrency, authorization, data integrity/migrations,
+performance budgets, external side effects, or cross-machine handoffs, let
+the router select `Assurance-Level: audit-grade`. It adds a deliberately
+stricter model — independent design review ↔ adjudication, human design
+approval, implementation ↔ audit, stable `C/W/G/A` IDs and a traceability
+matrix, gate contracts that state **invalid evidence**, reopen/disputed work
+states, and fail-closed handoff verification.
+
+Start from [`templates/audit-grade-task.md`](templates/audit-grade-task.md),
+then use:
+
+```bash
+engine/scripts/loop-handoff-check.sh \
+  --task tasks/<task> --repo /path/to/repo --ref origin/<branch>
+engine/scripts/loop-metrics.sh --task tasks/<task>
+```
+
+Light and standard loops are unchanged; audit-grade is selected for evidence
+difficulty and failure consequence, not for ceremony.
+
 > ⚠️ Non-interactive mode auto-approves permissions. Only run against repositories and feature branches where unattended edits are acceptable, prefer sandboxed/containerized environments, and scope credentials tightly. Read the "Unattended Safety" section of `engine/loop-engineering.md` first.
 
 ## Platform Support
@@ -232,8 +261,8 @@ The engine's protocol, roles, and commands are pure Markdown and the harness is 
 
 | Platform | Status | Adaptation notes |
 | --- | --- | --- |
-| **OpenCode** | ✅ Supported | First-class: `.opencode/` project-scope deployment (default, activates only where you opt in) + optional global install; `/ai-go:loop`, skills, and all 14 subagents work out of the box |
-| **Claude Code** | 🗺️ Planned | Role agents → `.claude/agents/`, loop command → slash command, protocol files reused as-is |
+| **OpenCode** | ✅ Supported | First-class: `.opencode/` project-scope deployment (default, activates only where you opt in) + optional global install; `/ai-go:loop`, skills, and all 15 subagents work out of the box |
+| **Claude Code** | 🧪 Experimental | `scripts/install-claude-code.sh` (agents converted on the fly, commands namespaced, loop skill); unattended via `loop-run.sh --runner claude`. Not yet validated against the full acceptance bar — feedback welcome |
 | **Cursor** | 🗺️ Planned | Knowledge entry point → Cursor rules, loop command → Cursor commands, subagents via its agent mechanism |
 | **Codex** | 🗺️ Planned | Role agents → TOML config; the harness's `opencode run` swaps for the corresponding CLI (`OPENCODE_BIN` is already injectable) |
 
@@ -253,7 +282,8 @@ bash tests/engine-deployment-test.sh    # engine layout and .opencode/ copy cons
 bash tests/init-knowledge-base-test.sh  # knowledge-base init: artifacts, idempotency, git URLs, failure paths
 ```
 
-- **Deeper reading**: protocol SSOT [`engine/loop-engineering.md`](engine/loop-engineering.md); design philosophy and open-source prior art [`engine/references/loop-philosophy.md`](engine/references/loop-philosophy.md).
+- **Behavioral evals**: `engine/evals/eval-run.sh` runs pressure scenarios against real sessions with an LLM judge (burns tokens; not in CI). Run it after changing load-bearing protocol rules; every new hard rule ships with a regression scenario.
+- **Deeper reading**: protocol SSOT [`engine/loop-engineering.md`](engine/loop-engineering.md); design philosophy and open-source prior art [`engine/references/loop-philosophy.md`](engine/references/loop-philosophy.md); browser-verification playbook [`engine/references/browser-verification.md`](engine/references/browser-verification.md).
 
 ## Issues & Contributing
 

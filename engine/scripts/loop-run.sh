@@ -18,6 +18,9 @@ MAX_ITERATIONS=10
 ITERATION_TIMEOUT=1800
 OPENCODE_AGENT=""
 OPENCODE_BIN="${OPENCODE_BIN:-opencode}"
+CLAUDE_BIN="${CLAUDE_BIN:-claude}"
+RUNNER="opencode"
+EDIT_SCOPES=()
 
 usage() {
   cat <<'USAGE'
@@ -46,10 +49,24 @@ Options:
   --agent <name>                Run iterations under this OpenCode agent, e.g. a
                                 permission-restricted read-only agent for
                                 analyze/review loops. Default: OpenCode's default.
+  --edit-scope <pattern>        Boundary lock (repeatable): permit file edits only
+                                under the given path pattern(s), enforced at the
+                                permission layer via an inline config override
+                                (explicit deny survives --auto). The task
+                                directory is always writable so state updates
+                                keep working. Example: --edit-scope 'src/**'.
+                                Supported by the opencode runner only.
+  --runner <opencode|claude>    Agent CLI driving the iterations. Default:
+                                opencode. The claude runner uses `claude -p`
+                                with --dangerously-skip-permissions
+                                (experimental; --agent and --edit-scope are
+                                not supported there).
   -h, --help                    Show this help.
 
 Environment:
   OPENCODE_BIN                  OpenCode binary to invoke. Default: opencode.
+  CLAUDE_BIN                    Claude Code binary for --runner claude.
+                                Default: claude.
 
 Exit codes: 0 DONE, 2 BLOCKED, 3 max iterations, 4 protocol/run error,
 5 stalled (state.md unchanged for two consecutive iterations).
@@ -73,6 +90,12 @@ while [ "$#" -gt 0 ]; do
     --agent)
       [ "$#" -ge 2 ] || { echo "--agent requires a name" >&2; exit 4; }
       OPENCODE_AGENT="$2"; shift 2 ;;
+    --edit-scope)
+      [ "$#" -ge 2 ] || { echo "--edit-scope requires a path pattern" >&2; exit 4; }
+      EDIT_SCOPES+=("$2"); shift 2 ;;
+    --runner)
+      [ "$#" -ge 2 ] || { echo "--runner requires opencode or claude" >&2; exit 4; }
+      RUNNER="$2"; shift 2 ;;
     -h|--help)
       usage; exit 0 ;;
     *)
@@ -93,6 +116,40 @@ HANDBOOK="$ENGINE_DIR/loop-engineering.md"
 CARD="$ENGINE_DIR/references/iteration-card.md"
 
 mkdir -p "$LOG_DIR"
+
+case "$RUNNER" in
+  opencode) ;;
+  claude)
+    [ -z "$OPENCODE_AGENT" ] || { echo "--agent is not supported by the claude runner" >&2; exit 4; }
+    [ "${#EDIT_SCOPES[@]}" -eq 0 ] || { echo "--edit-scope is not supported by the claude runner" >&2; exit 4; }
+    ;;
+  *) echo "Unknown runner: $RUNNER (opencode or claude)" >&2; exit 4 ;;
+esac
+
+# Per-run stats: one JSON line per harness invocation, part of the committed
+# task record — the local substitute for ecosystem-scale usage data.
+STATS_FILE="$TASK_DIR/loop/harness-runs.jsonl"
+RUN_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+RUN_START_EPOCH="$(date +%s)"
+record_run() {
+  # record_run <iterations-completed> <exit-reason>
+  printf '{"ts":"%s","runner":"%s","iterations":%s,"exit":"%s","duration_s":%s}\n' \
+    "$RUN_STARTED_AT" "$RUNNER" "$1" "$2" "$(( $(date +%s) - RUN_START_EPOCH ))" \
+    >> "$STATS_FILE" 2>/dev/null || true
+}
+
+# Boundary lock: translate --edit-scope patterns into an inline OpenCode
+# permission override (deny all edits, allow the listed scopes plus the task
+# directory). Explicit deny rules stay enforced even under --auto.
+if [ "${#EDIT_SCOPES[@]}" -gt 0 ]; then
+  EDIT_RULES="\"*\": \"deny\""
+  for scope in "${EDIT_SCOPES[@]}" "$TASK_DIR/**"; do
+    esc="${scope//\\/\\\\}"; esc="${esc//\"/\\\"}"
+    EDIT_RULES="$EDIT_RULES, \"$esc\": \"allow\""
+  done
+  export OPENCODE_CONFIG_CONTENT="{\"permission\": {\"edit\": {$EDIT_RULES}}}"
+  echo "Boundary lock: edits restricted to ${EDIT_SCOPES[*]} (plus the task directory)"
+fi
 
 if [ ! -f "$STATE_FILE" ]; then
   cat > "$STATE_FILE" <<STATE
@@ -168,24 +225,32 @@ a hard gate. Do exactly one iteration, then stop."
   # --auto keeps unattended runs unattended: permissions that would ask are
   # auto-approved (workspaces gate role agents/skills behind "ask" for
   # interactive on-demand use); explicit "deny" rules stay enforced.
-  RUN_ARGS=(run --quiet --auto)
-  [ -n "$OPENCODE_AGENT" ] && RUN_ARGS+=(--agent "$OPENCODE_AGENT")
+  if [ "$RUNNER" = "claude" ]; then
+    RUNNER_BIN="$CLAUDE_BIN"
+    RUN_ARGS=(-p --dangerously-skip-permissions)
+  else
+    RUNNER_BIN="$OPENCODE_BIN"
+    RUN_ARGS=(run --quiet --auto)
+    [ -n "$OPENCODE_AGENT" ] && RUN_ARGS+=(--agent "$OPENCODE_AGENT")
+  fi
 
   ITER_LOG="$LOG_DIR/iter-$(date -u +%Y%m%dT%H%M%SZ)-$i.log"
   RUN_RC=0
   if [ "$ITERATION_TIMEOUT" -gt 0 ] && command -v timeout >/dev/null 2>&1; then
     (cd "$WORKSPACE_DIR" && timeout --kill-after=30 "$ITERATION_TIMEOUT" \
-      "$OPENCODE_BIN" "${RUN_ARGS[@]}" "$PROMPT") >"$ITER_LOG" 2>&1 || RUN_RC=$?
+      "$RUNNER_BIN" "${RUN_ARGS[@]}" "$PROMPT") >"$ITER_LOG" 2>&1 || RUN_RC=$?
   else
-    (cd "$WORKSPACE_DIR" && "$OPENCODE_BIN" "${RUN_ARGS[@]}" "$PROMPT") >"$ITER_LOG" 2>&1 || RUN_RC=$?
+    (cd "$WORKSPACE_DIR" && "$RUNNER_BIN" "${RUN_ARGS[@]}" "$PROMPT") >"$ITER_LOG" 2>&1 || RUN_RC=$?
   fi
   ITER_SECS=$(( $(date +%s) - ITER_START ))
 
   if [ "$RUN_RC" -eq 124 ] || [ "$RUN_RC" -eq 137 ]; then
     echo "Iteration $i timed out after ${ITERATION_TIMEOUT}s (killed); see $ITER_LOG" >&2
+    record_run "$i" "timeout"
     exit 4
   elif [ "$RUN_RC" -ne 0 ]; then
-    echo "opencode run failed on iteration $i (exit $RUN_RC, ${ITER_SECS}s); see $ITER_LOG" >&2
+    echo "$RUNNER run failed on iteration $i (exit $RUN_RC, ${ITER_SECS}s); see $ITER_LOG" >&2
+    record_run "$i" "run-error"
     exit 4
   fi
   echo "    iteration $i finished in ${ITER_SECS}s"
@@ -198,6 +263,7 @@ a hard gate. Do exactly one iteration, then stop."
     echo "    warning: state.md unchanged after iteration $i (stall $STALL_COUNT/2)" >&2
     if [ "$STALL_COUNT" -ge 2 ]; then
       echo "Loop stalled: state.md unchanged for two consecutive iterations. Inspect $STATE_FILE and the logs in $LOG_DIR." >&2
+      record_run "$i" "stalled"
       exit 5
     fi
   else
@@ -209,15 +275,18 @@ a hard gate. Do exactly one iteration, then stop."
   case "$STATUS" in
     DONE)
       echo "Loop DONE after $i iteration(s). Review the diff and $STATE_FILE before merging."
+      record_run "$i" "done"
       exit 0 ;;
     BLOCKED)
       echo "Loop BLOCKED after $i iteration(s):" >&2
       sed -n 's/^- Blocked-Reason:[[:space:]]*//p' "$STATE_FILE" | head -n 1 >&2
+      record_run "$i" "blocked"
       exit 2 ;;
     RUNNING)
       ;;
     *)
       echo "Unparseable Status in $STATE_FILE after iteration $i: '$STATUS'" >&2
+      record_run "$i" "bad-status"
       exit 4 ;;
   esac
 
@@ -225,4 +294,5 @@ a hard gate. Do exactly one iteration, then stop."
 done
 
 echo "Reached max iterations ($MAX_ITERATIONS) with Status: RUNNING. Re-run to continue, or inspect $STATE_FILE." >&2
+record_run "$MAX_ITERATIONS" "max-iterations"
 exit 3
