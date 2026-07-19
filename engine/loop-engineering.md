@@ -125,6 +125,32 @@ Escalate a light loop to standard the moment reality disagrees with the router
 — new repositories touched, hidden complexity, or a failing slice that resists
 a quick fix — and record the escalation in the iteration log.
 
+## Assurance Level: Standard Versus Audit-Grade
+
+Scale answers **how much work** a task needs; assurance answers **how
+auditable its proof must be**. Most standard loops use the normal task
+artifacts and the independent delivery review. The router selects
+`Assurance-Level: audit-grade` when a failure could corrupt data, violate
+authorization, break a public contract, lose money, cause a performance
+incident, cross an external side-effect boundary, or when work will hand off
+across agents/machines.
+
+Audit-grade loops add a deliberately stricter model:
+
+- two explicit closed loops — independent design review ↔ adjudication before
+  implementation, then implementation ↔ independent audit;
+- stable clause/work/gate/acceptance IDs and a traceability matrix;
+- gate contracts that name invalid evidence, not merely passing commands;
+- append-only review, adjudication, and work-item state ledgers;
+- `reopened` / `disputed` transitions instead of silently changing scope; and
+- fail-closed cross-session handoff verification.
+
+The full artifact model, state machine, review isolation, evidence routing,
+and handoff rules are in `references/audit-grade.md`. Human design approval
+is mandatory between the two loops; clean audit is not automatic product
+acceptance. Do not select audit-grade to look rigorous — select it when the
+failure consequences and evidence difficulty require it.
+
 ## Workspace Scope: Multi-Repository Loops
 
 A loop's working scope is the **workspace**: a root directory containing one or
@@ -173,6 +199,9 @@ tasks/<project-or-cross-project>/<task>/
 └── loop/
     ├── state.md      # machine-readable loop state (format below)
     ├── reviews.jsonl # checker verdicts, one JSON line each (standard loops)
+    ├── adjudication.jsonl # finding decisions (audit-grade only)
+    ├── work-items.jsonl   # W-* state transitions/evidence (audit-grade only)
+    ├── gates.md      # G-* gate contracts (audit-grade only)
     ├── artifacts/    # process outputs: design docs, review reports, briefs
     └── logs/         # harness iteration logs; gitignored, never committed
 ```
@@ -194,6 +223,7 @@ tasks/<project-or-cross-project>/<task>/
 
 - Goal: <one sentence>
 - Scale: <light | standard>
+- Assurance-Level: <standard | audit-grade>
 - Stop conditions: <verifiable list>
 - Repositories: <touched repos with read/write and dependency order>
 - Roles: <subagents this loop consults>

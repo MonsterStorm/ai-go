@@ -125,6 +125,7 @@ Agent 会忘，仓库不忘。每个任务是一条任务记录（spec / plan / 
 | **单一入口** | `engine/commands/loop.md` | `/ai-go:loop <目标>`，内部路由，用户无需预判任务类型 |
 | **会话技能** | `engine/skills/ai-go-loop/` | "loop this task"、"自动迭代交付" 等短语直接触发 |
 | **无人值守 harness** | `engine/scripts/loop-run.sh` | 每迭代一个全新会话，退出码语义化，自带各种刹车 |
+| **Audit-grade 高风险保障** | `engine/references/audit-grade.md`、`templates/audit-grade-task.md` | 可选高风险模型：双闭环、C/W/G/A 追溯、含无效证据的 Gate Contract、reopen/disputed 状态、审计账本、fail-closed 交接 |
 | **行为评测** | `engine/evals/` | 压力场景 + LLM 裁判：证明模型在诱惑下**真的遵守协议**，而不只是文件里写了。场景库靠真实使用生长：Ratchet 评测车道和 `/ai-go:autopsy` 把观察到的违规倾向变成场景草稿；`--ledger` 记录通过率趋势 |
 | **知识库初始化器** | `scripts/init-knowledge-base.sh` | 一条命令让任何项目具备运行引擎的全部前提 |
 | **模板与测试** | `templates/`、`tests/` | 知识库脚手架模板、OpenCode 模型绑定示例；脚本与部署的契约测试 |
@@ -227,6 +228,20 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <项目根> \
 加 `--edit-scope '<path>/**'`（可重复）可以**在权限层锁定写边界**：列出范围（外加任务目录）之外的文件编辑会被显式 deny 规则拒绝，且该规则在 `--auto` 下依然生效——路由判定的 Write-Scope 从"提示词约定"变成"机器强制"。
 
 `--runner claude` 用 Claude Code（`claude -p`）驱动迭代（实验性；`--agent`/`--edit-scope` 仅限 opencode）。每次运行会把统计（runner、迭代数、退出原因、耗时）追加到任务的 `loop/harness-runs.jsonl`。
+
+### 6. Audit-grade 高风险任务
+
+架构、并发、权限、数据完整性/迁移、性能预算、外部副作用、跨机器交接等任务，让路由选择 `Assurance-Level: audit-grade`。它刻意增加更严格的模型：独立设计评审 ↔ 裁决、人工设计批准、实施 ↔ 审计、稳定的 `C/W/G/A` ID 和追溯矩阵、明确**无效证据**的 Gate Contract、reopen/disputed 工作项状态、fail-closed 交接验证。
+
+从 [`templates/audit-grade-task.md`](templates/audit-grade-task.md) 开始，然后使用：
+
+```bash
+engine/scripts/loop-handoff-check.sh \
+  --task tasks/<task> --repo /path/to/repo --ref origin/<branch>
+engine/scripts/loop-metrics.sh --task tasks/<task>
+```
+
+light/standard Loop 不变；audit-grade 按失败后果和证据难度选择，不是为了增加仪式。
 
 > ⚠️ 非交互模式会自动批准所有权限。只在可接受无人值守修改的仓库和特性分支上运行，优先使用沙箱/容器环境，凭证从紧配置。运行前请阅读 `engine/loop-engineering.md` 的 "Unattended Safety" 一节。
 

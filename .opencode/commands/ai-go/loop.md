@@ -17,7 +17,8 @@ Workflow:
    unchanged).
 2. **Route before executing.** Run the protocol's Loop Router: classify intent
    (mode), scale (light or standard, per the protocol's Proportionality
-   section), touched repositories (the workspace may contain multiple
+   section), assurance level (standard or audit-grade, per the protocol's
+   Assurance Level section), touched repositories (the workspace may contain multiple
    independent git repos — identify which this loop reads and which it
    writes), write risk, uncertainty, stop conditions, and needed roles. Honor
    an explicit `--mode`; `--readonly` forbids all code modification regardless
@@ -31,7 +32,7 @@ Workflow:
      spec.md (verifiable acceptance criteria, the open-items ledger, primary
      role), plan.md (slices — light-scale loops may keep the checklist inside
      spec.md instead), and loop/state.md (Status: RUNNING, Iteration: 0, plus
-     the Router section: mode, scale, write scope, goal, stop conditions,
+     the Router section: mode, scale, assurance level, write scope, goal, stop conditions,
      roles).
    - If the user input is empty, infer the goal from the current conversation and
      confirm it with the user before starting.
@@ -50,6 +51,11 @@ Workflow:
    slices ordered by cross-repo dependency (contracts first, then services,
    then clients). Pause for user confirmation when a design's blast radius is
    large.
+   - When Assurance-Level is `audit-grade`, follow
+     `references/audit-grade.md`: establish C/W/G/A traceability, gate
+     contracts, and review/adjudication/work-item ledgers; complete
+     independent design review/adjudication and obtain human design approval
+     before implementation; use the implementation/audit loop after.
 5. Execute iterations per the Iteration Contract: get bearings, smoke-verify
    the current state once per session, one slice at a time (small consecutive
    slices may run as one bounded batch), verification evidence before claims,

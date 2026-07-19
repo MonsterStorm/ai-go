@@ -12,8 +12,11 @@ system and designed to move to other workspaces and repositories without edits.
 | `references/loop-philosophy.md` | Background: philosophy, six primitives, operator risks, open-source prior art (design-time reading, not per-iteration) |
 | `references/iteration-card.md` | Compact per-iteration contract for harness iterations (condensed from the protocol; kept in sync by tests) |
 | `references/browser-verification.md` | Playbook for user-level browser verification of UI-facing acceptance criteria |
+| `references/audit-grade.md` | High-risk assurance model: dual loops, stable IDs, gate contracts, ledgers, reopen/disputed state, fail-closed handoff |
 | `references/design-taste.md` | Operational design taste: Design Read, surface registers, the three dials, AI-slop test, tell catalog, implementation floor |
 | `evals/` | Behavioral evals: pressure scenarios + `eval-run.sh` harness with an LLM judge — proves the model obeys the protocol, not just that the files say so |
+| `scripts/loop-handoff-check.sh` | Fail-closed audit-grade session/machine handoff check (clean, committed, reachable ref) |
+| `scripts/loop-metrics.sh` | Local audit-grade task health summary from run/review/adjudication/work-item ledgers |
 | `agents/` | Fifteen professional role subagents, named by layer — architects design (system, backend, data, AI, security, design), engineers execute (backend, frontend, mobile, DevOps, test), plus process roles (product analyst, issue fixer, tech reviewer, delivery reviewer) |
 | `commands/loop.md` | `/ai-go:loop` command definition |
 | `commands/models.md` | `/ai-go:models` — agent-guided strong/execution model binding (discover, propose, confirm, write config) |

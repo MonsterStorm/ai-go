@@ -127,6 +127,7 @@ The protocol, roles, commands, and skills are all Markdown; the harness is one B
 | **Single entry** | `engine/commands/loop.md` | `/ai-go:loop <goal>` with internal routing — you never pre-classify the task |
 | **Conversational skill** | `engine/skills/ai-go-loop/` | Phrases like "loop this task" trigger it directly |
 | **Unattended harness** | `engine/scripts/loop-run.sh` | Fresh session per iteration, semantic exit codes, brakes built in |
+| **Audit-grade assurance** | `engine/references/audit-grade.md`, `templates/audit-grade-task.md` | Opt-in high-risk model: dual loops, C/W/G/A traceability, gate contracts with invalid evidence, reopen/disputed state, audit ledgers, fail-closed handoff |
 | **Behavioral evals** | `engine/evals/` | Pressure scenarios + LLM judge: proves the model *obeys* the protocol under temptation, not just that the files say so. Grows from real usage: the Ratchet's eval lane and `/ai-go:autopsy` turn observed rule bends into scenario drafts; `--ledger` tracks pass-rate over time |
 | **Knowledge-base initializer** | `scripts/init-knowledge-base.sh` | One command gives any project everything the engine needs |
 | **Templates & tests** | `templates/`, `tests/` | Knowledge-base scaffolding, OpenCode model-binding example; contract tests for scripts and deployment |
@@ -229,6 +230,28 @@ Each iteration starts a fresh `opencode run` session; iterations hand off throug
 Add `--edit-scope '<path>/**'` (repeatable) to **lock the write boundary at the permission layer**: edits outside the listed scopes (plus the task directory) are denied by an explicit rule that survives `--auto` — the router's Write-Scope becomes machine-enforced, not prompt-hoped.
 
 `--runner claude` drives iterations through Claude Code (`claude -p`, experimental; `--agent`/`--edit-scope` are opencode-only). Every run appends stats (runner, iterations, exit reason, duration) to the task's `loop/harness-runs.jsonl`.
+
+### 6. Audit-grade high-risk work
+
+For architecture, concurrency, authorization, data integrity/migrations,
+performance budgets, external side effects, or cross-machine handoffs, let
+the router select `Assurance-Level: audit-grade`. It adds a deliberately
+stricter model — independent design review ↔ adjudication, human design
+approval, implementation ↔ audit, stable `C/W/G/A` IDs and a traceability
+matrix, gate contracts that state **invalid evidence**, reopen/disputed work
+states, and fail-closed handoff verification.
+
+Start from [`templates/audit-grade-task.md`](templates/audit-grade-task.md),
+then use:
+
+```bash
+engine/scripts/loop-handoff-check.sh \
+  --task tasks/<task> --repo /path/to/repo --ref origin/<branch>
+engine/scripts/loop-metrics.sh --task tasks/<task>
+```
+
+Light and standard loops are unchanged; audit-grade is selected for evidence
+difficulty and failure consequence, not for ceremony.
 
 > ⚠️ Non-interactive mode auto-approves permissions. Only run against repositories and feature branches where unattended edits are acceptable, prefer sandboxed/containerized environments, and scope credentials tightly. Read the "Unattended Safety" section of `engine/loop-engineering.md` first.
 
