@@ -232,7 +232,7 @@ engine/scripts/loop-run.sh --task <task-dir> --workspace <项目根> \
 | --- | --- | --- |
 | **OpenCode** | ✅ 已支持 | 一等公民：`.opencode/` 项目级部署（默认，只在指定项目生效）+ 可选全局安装，`/ai-go:loop`、技能、14 个子代理开箱即用 |
 | **Claude Code** | 🗺️ 规划中 | 角色代理 → `.claude/agents/`，loop 命令 → slash command，协议文件直接复用 |
-| **Cursor** | 🧪 实验性 | `scripts/install-cursor-engine.sh` 写入 `.cursor/rules/*.mdc` 适配器。Cursor 只自动加载轻量触发映射；`/ai-go:*` 和 `@ai-go-*` 时再读取对应 engine SSOT 文件。Cursor 暂无 OpenCode 权限门控，硬性门仍靠提示词执行。 |
+| **Cursor** | 🧪 实验性 | `scripts/install-cursor-engine.sh` 写入真正的 Cursor 斜杠命令（`.cursor/commands/ai-go-loop|design|models|autopsy.md`，会出现在 `/` 菜单）外加 `.cursor/rules/*.mdc` 路由规则。`/ai-go-*`（或 `@ai-go-*`）会让 agent 读取对应 engine SSOT 文件。Cursor 暂无 OpenCode 权限门控，硬性门仍靠提示词执行。 |
 | **Codex** | 🗺️ 规划中 | 角色代理 → TOML 配置，harness 的 `opencode run` 换成对应 CLI 调用（`OPENCODE_BIN` 已可注入） |
 
 想优先支持某个平台，或愿意贡献适配？请开一个 [Issue](https://github.com/MonsterStorm/ai-go/issues) 或直接提 PR——适配的验收标准很简单：在该平台上跑通 `设计 → 迭代 → 独立评审置 DONE` 的完整循环。

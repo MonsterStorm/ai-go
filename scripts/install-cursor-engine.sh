@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Install a thin Cursor Rules adapter for the ai-go engine.
-# Cursor uses .cursor/rules/*.mdc rather than OpenCode command/agent folders;
-# this adapter maps explicit user triggers (/ai-go:loop, @ai-go-...) to the
-# engine SSOT files in this repo.
+# Install Cursor support for the ai-go engine, in two parts:
+#   1. .cursor/commands/*.md — real Cursor slash commands (v1.6+) that appear
+#      in the / menu: /ai-go-loop, /ai-go-design, /ai-go-models, /ai-go-autopsy.
+#   2. .cursor/rules/ai-go-engine.mdc — an always-applied routing rule mapping
+#      the commands and @ai-go-<role> mentions to the engine SSOT files.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -18,9 +19,10 @@ usage() {
 Usage: scripts/install-cursor-engine.sh --workspace <root> [--engine-relative <path>]
        [--uninstall]
 
-Install a Cursor Project Rule into <root>/.cursor/rules/ai-go-engine.mdc.
-Use this after cloning ai-go into or next to the workspace where you want the
-engine triggers available.
+Install Cursor slash commands into <root>/.cursor/commands/ (/ai-go-loop,
+-design, -models, -autopsy) plus a routing rule at
+<root>/.cursor/rules/ai-go-engine.mdc. Use this after cloning ai-go into or
+next to the workspace where you want the engine triggers available.
 
 Options:
   --workspace <root>          Cursor workspace/project root (required).
@@ -60,12 +62,48 @@ ENGINE_PATH="$WORKSPACE/$ENGINE_RELATIVE"
 
 RULE_DIR="$WORKSPACE/.cursor/rules"
 RULE="$RULE_DIR/ai-go-engine.mdc"
+COMMANDS_DIR="$WORKSPACE/.cursor/commands"
+
+COMMAND_NAMES=(ai-go-loop ai-go-design ai-go-models ai-go-autopsy)
+COMMAND_FILES=(loop design models autopsy)
 
 if [ "$MODE" = "uninstall" ]; then
   rm -f "$RULE"
   echo "Removed Cursor rule: $RULE"
+  for name in "${COMMAND_NAMES[@]}"; do
+    rm -f "$COMMANDS_DIR/$name.md"
+  done
+  rmdir "$COMMANDS_DIR" 2>/dev/null || true
+  echo "Removed Cursor commands: ${COMMAND_NAMES[*]}"
   exit 0
 fi
+
+# --- Slash commands (.cursor/commands/*.md) -----------------------------------
+
+mkdir -p "$COMMANDS_DIR"
+i=0
+while [ "$i" -lt "${#COMMAND_NAMES[@]}" ]; do
+  name="${COMMAND_NAMES[$i]}"
+  file="${COMMAND_FILES[$i]}"
+  cat > "$COMMANDS_DIR/$name.md" <<CMD
+# /${name}
+
+Run the ai-go engine's \`${file}\` command.
+
+Read \`$ENGINE_RELATIVE/commands/${file}.md\` and follow it exactly — that file
+is the SSOT for this command. Treat everything I typed after the command name
+as its User Input.
+
+Do not start loop-style delivery, invoke an \`ai-go-*\` role, or cross a hard
+gate (DB writes, external write APIs, PR creation, release, deploy, destructive
+operations) without my explicit authorization for this task. Cursor does not
+enforce the OpenCode permission layer here, so honor these gates yourself.
+CMD
+  echo "Installed Cursor command: $COMMANDS_DIR/$name.md (/$name)"
+  i=$((i + 1))
+done
+
+# --- Routing rule (.cursor/rules/*.mdc) ---------------------------------------
 
 mkdir -p "$RULE_DIR"
 cat > "$RULE" <<RULE
@@ -80,17 +118,20 @@ This workspace has the ai-go engine available at:
 \`$ENGINE_RELATIVE\`
 
 Load the project's own knowledge entry point (AGENTS.md) normally when present.
-The engine capabilities below are **explicit-trigger only**:
+The engine capabilities below are **explicit-trigger only**. Loop, design,
+models, and autopsy are installed as Cursor slash commands (\`/ai-go-loop\`,
+\`/ai-go-design\`, \`/ai-go-models\`, \`/ai-go-autopsy\`) under
+\`.cursor/commands/\`; the \`/ai-go:<name>\` form works too. In every case:
 
-- When the user types \`/ai-go:loop ...\`, read
+- For \`/ai-go-loop\` (or \`/ai-go:loop\`), read
   \`$ENGINE_RELATIVE/commands/loop.md\` and follow it exactly.
-- When the user types \`/ai-go:design ...\`, read
+- For \`/ai-go-design\` (or \`/ai-go:design\`), read
   \`$ENGINE_RELATIVE/commands/design.md\` and follow it exactly.
-- When the user types \`/ai-go:models ...\`, read
+- For \`/ai-go-models\` (or \`/ai-go:models\`), read
   \`$ENGINE_RELATIVE/commands/models.md\` and follow it exactly. Cursor does
   not share OpenCode's config format; adapt configuration output as
   recommendations unless the user explicitly asks to edit a file.
-- When the user types \`/ai-go:autopsy ...\`, read
+- For \`/ai-go-autopsy\` (or \`/ai-go:autopsy\`), read
   \`$ENGINE_RELATIVE/commands/autopsy.md\` and follow it exactly.
 - When the user mentions \`@ai-go-<role>\`, read the matching file under
   \`$ENGINE_RELATIVE/agents/\` and use that role's standards.
@@ -110,4 +151,4 @@ for this task.
 RULE
 
 echo "Installed Cursor rule: $RULE"
-echo "Restart Cursor or reload the workspace so it discovers the rule."
+echo "Reload the Cursor window; type / in Agent chat to see /ai-go-loop, -design, -models, -autopsy."
