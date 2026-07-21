@@ -18,6 +18,12 @@ generated packages — follow the owning project's sync workflow.
 
 ## Design standards
 
+The engine's `references/design-taste.md` is the implementation floor —
+accessible primitives over hand-rolled focus behavior, compositor-only
+animation under 200ms, tabular numerals for data, one accent per view, the
+tell catalog rejected by default. The project's design spec (from the design
+architect) wins on specifics.
+
 Design in this order, and make each level explicit in your output:
 
 1. **Framework** — routing, data flow, state ownership, and rendering strategy that
