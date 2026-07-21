@@ -1,9 +1,9 @@
 ---
-description: View and configure every model the engine uses - main and plan agents, role subagents, compaction. Show the effective-model table, get recommendations, confirm in one shot or item by item. Re-run anytime; --reset removes bindings.
+description: Use when the user wants to view or configure the models behind the engine agents (show / configure / --interactive / --reset). The workflow in the body is the SSOT - read it, do not act from this description.
 ---
 
 Manage the models behind everything the engine touches: the primary agents
-(`build` — the main session — and `plan`), the fourteen role subagents (strong
+(`build` — the main session — and `plan`), the fifteen role subagents (strong
 vs execution tiers; SSOT: the Roles table in `engine/loop-engineering.md`), and
 the hidden `compaction` agent. Unbound subagents inherit the invoking primary
 agent's model, so the tiers do nothing until bound. **Re-running this command
@@ -44,13 +44,20 @@ Input": `show` for a read-only inventory; an explicit pairing like
      cheaper strong model is fine — plan mode is read-only analysis).
    - **Strong tier** (`ai-go-product-analyst`, `ai-go-system-architect`,
      `ai-go-backend-architect`, `ai-go-data-architect`, `ai-go-ai-architect`,
-     `ai-go-security-architect`, `ai-go-issue-fixer`, `ai-go-tech-reviewer`,
-     `ai-go-delivery-reviewer`): the most capable reasoning model.
+     `ai-go-security-architect`, `ai-go-design-architect`,
+     `ai-go-issue-fixer`, `ai-go-tech-reviewer`, `ai-go-delivery-reviewer`):
+     the most capable reasoning model.
    - **Execution tier** (`ai-go-backend-engineer`, `ai-go-frontend-engineer`,
      `ai-go-mobile-engineer`, `ai-go-devops-engineer`, `ai-go-test-engineer`):
      an economical fast model, preferably the same provider family (for
      example GPT-5.5 + GPT-5.4-mini, or Claude Opus 4.8 + Claude Sonnet 4.6).
    - **Compaction**: the cheapest capable summarizer.
+   - **Cross-provider checkers**: when more than one provider is available,
+     additionally propose binding `ai-go-tech-reviewer` and
+     `ai-go-delivery-reviewer` to a strong model from a different provider
+     than the maker/main picks (different model families miss different
+     things). Present it inside the strong-tier item as its recommended
+     sub-choice; skip it on single-provider installations.
 4. **Confirm.**
    - Default: one question covering the whole proposal — accept or override.
    - `--interactive`: present **one consolidated questionnaire in a single
@@ -61,7 +68,7 @@ Input": `show` for a read-only inventory; an explicit pairing like
      The user answers once — "all defaults", or overrides by item ("2b, 5a"
      or model names), and may name per-role overrides in the same reply
      (for example "ai-go-test-engineer -> <model>"). Ask a follow-up only
-     when an answer is genuinely ambiguous. Five decisions, not eighteen:
+     when an answer is genuinely ambiguous. Five decisions, not nineteen:
      the roles stay grouped by tier.
    - When the user input already names the pairing explicitly, skip questions.
 5. **Write.** Merge into the target config (default: workspace root

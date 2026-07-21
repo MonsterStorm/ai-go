@@ -234,7 +234,7 @@ The engine's protocol, roles, and commands are pure Markdown and the harness is 
 | --- | --- | --- |
 | **OpenCode** | ✅ Supported | First-class: `.opencode/` project-scope deployment (default, activates only where you opt in) + optional global install; `/ai-go:loop`, skills, and all 14 subagents work out of the box |
 | **Claude Code** | 🗺️ Planned | Role agents → `.claude/agents/`, loop command → slash command, protocol files reused as-is |
-| **Cursor** | 🗺️ Planned | Knowledge entry point → Cursor rules, loop command → Cursor commands, subagents via its agent mechanism |
+| **Cursor** | 🧪 Experimental | `scripts/install-cursor-engine.sh` writes a `.cursor/rules/*.mdc` adapter. Cursor loads a thin trigger map; `/ai-go:*` and `@ai-go-*` make the agent read the relevant engine SSOT file. No OpenCode permission gates in Cursor yet — hard gates remain prompt-enforced. |
 | **Codex** | 🗺️ Planned | Role agents → TOML config; the harness's `opencode run` swaps for the corresponding CLI (`OPENCODE_BIN` is already injectable) |
 
 Want a platform prioritized, or willing to contribute an adaptation? Open an [Issue](https://github.com/MonsterStorm/ai-go/issues) or send a PR — the acceptance bar is simple: run the full `design → iterate → independent review sets DONE` loop on that platform.

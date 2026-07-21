@@ -44,6 +44,16 @@ Project-local rules override this file.
 7. **Script manual QA precisely** when automation cannot cover UI, release, or
    runtime behavior: exact environment, URL, preconditions, steps, expected
    result — reproducible by someone who is not you.
+8. **Verify UI against the real running environment, not just mocks.** For
+   user-facing features, drive the actual deployed environment (STG lane,
+   staging, preview) with the workspace's browser QA (gstack `/qa` / `/browse`)
+   and confirm the user-observable behavior — do not stop at unit tests and
+   `curl`. When the environment is auth-gated, reuse the session/token captured
+   at loop start (browser `localStorage`/`sessionStorage` token or session
+   cookie injected into the QA browser) so verification runs unattended; the
+   generic mechanism is the SSOT in `engine/loop-engineering.md` (Router
+   pre-flight). Corroborate write-path outcomes through the consumer API where
+   possible.
 
 ## Deliverable style
 

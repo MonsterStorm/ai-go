@@ -11,10 +11,17 @@ system and designed to move to other workspaces and repositories without edits.
 | `loop-engineering.md` | Loop protocol SSOT: router, modes, state format, iteration contract, stop conditions, risk control |
 | `references/loop-philosophy.md` | Background: philosophy, six primitives, operator risks, open-source prior art (design-time reading, not per-iteration) |
 | `references/iteration-card.md` | Compact per-iteration contract for harness iterations (condensed from the protocol; kept in sync by tests) |
-| `agents/` | Fourteen professional role subagents, named by layer — architects design (system, backend, data, AI, security), engineers execute (backend, frontend, mobile, DevOps, test), plus process roles (product analyst, issue fixer, tech reviewer, delivery reviewer) |
+| `references/browser-verification.md` | Playbook for user-level browser verification of UI-facing acceptance criteria |
+| `references/audit-grade.md` | High-risk assurance model: dual loops, stable IDs, gate contracts, ledgers, reopen/disputed state, fail-closed handoff |
+| `references/design-taste.md` | Operational design taste: Design Read, surface registers, the three dials, AI-slop test, tell catalog, implementation floor |
+| `evals/` | Behavioral evals: pressure scenarios + `eval-run.sh` harness with an LLM judge — proves the model obeys the protocol, not just that the files say so |
+| `engine/scripts/loop-handoff-check.sh` | Fail-closed audit-grade session/machine handoff check (clean, committed, reachable ref) |
+| `engine/scripts/loop-metrics.sh` | Local audit-grade task health summary from run/review/adjudication/work-item ledgers |
+| `agents/` | Fifteen professional role subagents, named by layer — architects design (system, backend, data, AI, security, design), engineers execute (backend, frontend, mobile, DevOps, test), plus process roles (product analyst, issue fixer, tech reviewer, delivery reviewer) |
 | `commands/loop.md` | `/ai-go:loop` command definition |
 | `commands/models.md` | `/ai-go:models` — agent-guided strong/execution model binding (discover, propose, confirm, write config) |
 | `commands/design.md` | `/ai-go:design` — standalone technical-design skill (explore, confirm outline, write the full design); works in any project |
+| `commands/autopsy.md` | `/ai-go:autopsy` — post-mortem a finished loop: mine the task record for rule bends, rationalizations, and friction; draft eval scenarios and amendments |
 | `skills/ai-go-loop/` | Conversational trigger skill |
 | `engine/scripts/loop-run.sh` | Unattended harness driving `opencode run` iterations |
 
@@ -29,6 +36,14 @@ system and designed to move to other workspaces and repositories without edits.
   the engine to another repository, so never put portable content inside them.
 - Role agents keep the two-section pattern: generic professional core plus a
   "Project knowledge binding" section.
+- Descriptions (frontmatter of agents, commands, skills) state **triggering
+  conditions only, never workflow summaries** — agents demonstrably follow a
+  summary in the description instead of reading the body. Point to the body
+  as the SSOT.
+- Load-bearing rule changes should come with a behavioral eval: add or update
+  a pressure scenario under `evals/scenarios/` (RED: capture the
+  rationalization; GREEN: close it in the protocol; REFACTOR: keep the
+  scenario as the regression guard).
 - Knowledge (routers, handbooks, project/domain docs, task records) stays outside
   `engine/`.
 

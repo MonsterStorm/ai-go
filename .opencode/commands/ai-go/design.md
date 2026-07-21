@@ -1,5 +1,5 @@
 ---
-description: Produce a review-ready technical design from a PRD or requirement - explore first, confirm an outline, then write the full design. Explicit trigger; works in any project.
+description: Use when the user asks for a technical design from a PRD or requirement, in any project. The workflow in the body is the SSOT - read it, do not act from this description.
 ---
 
 Generic engineering skill: turn the user's requirement (PRD text, link, or a

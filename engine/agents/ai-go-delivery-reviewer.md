@@ -23,15 +23,25 @@ this file. The loop protocol you enforce is
    the loop is not reviewable — set BLOCKED with that reason.
 2. Re-run the verification commands yourself. Evidence in the iteration log is a
    claim; your own command output is proof. Never mark a criterion passed on the
-   log alone.
+   log alone. For user-facing UI, re-verify against the real running environment
+   (browser QA / `/qa` / `/browse`, reusing the session or token captured at
+   loop start — see `engine/loop-engineering.md` Router pre-flight and
+   `docs/handbook/swimlane.md`), not only unit tests and `curl`. When you cannot
+   reach the auth-gated UI yourself, corroborate the write-path claims through
+   the consumer API and judge whether the recorded UI evidence is concrete and
+   falsifiable rather than hand-waving.
 3. Design-consistency review: diff the implementation against spec.md and the
    technical design. Stale code from abandoned iterations, leftover experiments, and
    drift between design and code are review failures even when tests pass.
 4. Check the loop followed hard gates: no production writes, no release actions, no
    generated-file hand edits, and the project's API contract system updated in the
    same task for any API surface change.
-5. Inspect `git status` and the full diff in every touched repository: unrelated
-   changes, secrets, debug leftovers, and uncommitted files fail the review.
+5. Inspect `git status` and the full diff in every touched repository: task-scope
+   unrelated changes, secrets, debug leftovers, and uncommitted files fail the
+   review. Pre-existing out-of-scope dirty or untracked files do not by themselves
+   fail DONE when the loop explicitly isolates them in state.md, proves they were
+   not edited/staged/committed by this loop, and leaves them untouched per workspace
+   rules.
 
 ## Verdict
 
